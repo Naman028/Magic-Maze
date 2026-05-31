@@ -103,6 +103,63 @@ function referenceEntryForTile(tileId?: string, direction?: string, rotation: 0 
   return undefined;
 }
 
+function directionDelta(direction?: string) {
+  switch (direction) {
+    case "North":
+      return { dx: 0, dy: -1 };
+    case "South":
+      return { dx: 0, dy: 1 };
+    case "East":
+      return { dx: 1, dy: 0 };
+    case "West":
+      return { dx: -1, dy: 0 };
+    default:
+      return undefined;
+  }
+}
+
+function tileSearchArrows(tileId: string | undefined, rotation: 0 | 90 | 180 | 270) {
+  const encoded = tileId ? ENCODED_TILE_ENTERS[tileId] : undefined;
+  if (!encoded) return [];
+
+  const arrows: Array<{ x: number; y: number; direction: string }> = [];
+  for (let y = 0; y < BACKEND_TILE_GRID_SIZE; y += 1) {
+    for (let x = 0; x < BACKEND_TILE_GRID_SIZE; x += 1) {
+      const block = encoded.substring((y * BACKEND_TILE_GRID_SIZE + x) * 4, (y * BACKEND_TILE_GRID_SIZE + x) * 4 + 4);
+      if (!gateHeroType(block[2])) continue;
+      const baseDirection = edgeDirection(x, y);
+      if (!baseDirection) continue;
+      arrows.push({
+        ...rotateCoordinate(x, y, rotation),
+        direction: rotateDirection(baseDirection, rotation),
+      });
+    }
+  }
+  return arrows;
+}
+
+export function hasSearchArrowConflict(
+  session: GameSession,
+  explorationCell: MazeCell,
+  tileId: string | undefined,
+  boardX: number,
+  boardY: number,
+  rotation: 0 | 90 | 180 | 270,
+) {
+  const intendedConnectionDirection = oppositeDirection(explorationCell.explorationDirection);
+  const cells = Object.values(session.board.cells);
+
+  return tileSearchArrows(tileId, rotation).some((arrow) => {
+    const delta = directionDelta(arrow.direction);
+    if (!delta) return false;
+
+    const adjacentCell = cells.find((cell) => cell.x === boardX + arrow.x + delta.dx && cell.y === boardY + arrow.y + delta.dy);
+    if (!adjacentCell) return false;
+
+    return adjacentCell.cellId !== explorationCell.cellId || arrow.direction !== intendedConnectionDirection;
+  });
+}
+
 export function hasMatchingEntryForExploration(tileId: string | undefined, cell: MazeCell, rotation: 0 | 90 | 180 | 270 = 0) {
   return Boolean(referenceEntryForTile(tileId, cell.explorationDirection, rotation, cell.explorationForHeroType));
 }

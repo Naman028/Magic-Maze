@@ -192,14 +192,37 @@ function getCompatibleEntryLocalCellId(cells: TileCellDefinition[], explorationC
   return entry.localCellId;
 }
 
+const directionDelta: Record<Direction, { dx: number; dy: number }> = {
+  [Direction.North]: { dx: 0, dy: -1 },
+  [Direction.South]: { dx: 0, dy: 1 },
+  [Direction.East]: { dx: 1, dy: 0 },
+  [Direction.West]: { dx: -1, dy: 0 },
+};
+
+function cellAt(session: GameSession, x: number, y: number): MazeCell | undefined {
+  return Object.values(session.board.cells).find((cell) => cell.x === x && cell.y === y);
+}
+
+function assertSearchArrowsDoNotPointIntoPlacedTiles(session: GameSession, tileCells: TileCellDefinition[], explorationCell: MazeCell, boardX: number, boardY: number): void {
+  for (const cell of tileCells) {
+    if (cell.type !== CellType.Exploration || !cell.explorationDirection) continue;
+
+    const delta = directionDelta[cell.explorationDirection];
+    const adjacentCell = cellAt(session, boardX + cell.localX + delta.dx, boardY + cell.localY + delta.dy);
+    if (!adjacentCell) continue;
+
+    const isIntendedConnection =
+      adjacentCell.cellId === explorationCell.cellId &&
+      cell.explorationDirection === oppositeDirection(explorationCell.explorationDirection ?? Direction.North);
+
+    if (!isIntendedConnection) {
+      throw new Error("New tile has a search arrow pointing into an already placed tile.");
+    }
+  }
+}
+
 function originForEntry(explorationCell: MazeCell, entry: TileCellDefinition, direction: Direction): { boardX: number; boardY: number } {
-  const deltaByDirection: Record<Direction, { dx: number; dy: number }> = {
-    [Direction.North]: { dx: 0, dy: -1 },
-    [Direction.South]: { dx: 0, dy: 1 },
-    [Direction.East]: { dx: 1, dy: 0 },
-    [Direction.West]: { dx: -1, dy: 0 },
-  };
-  const delta = deltaByDirection[direction];
+  const delta = directionDelta[direction];
   return {
     boardX: explorationCell.x + delta.dx - entry.localX,
     boardY: explorationCell.y + delta.dy - entry.localY,
@@ -260,6 +283,7 @@ export function placeNextTile(
 
   assertPlacementFollowsArrow(session, explorationCell, finalBoardX, finalBoardY);
   assertTileDoesNotOverlap(session, finalBoardX, finalBoardY);
+  assertSearchArrowsDoNotPointIntoPlacedTiles(session, tileCells, explorationCell, finalBoardX, finalBoardY);
 
   const placedTile: PlacedTile = { tileId: tile.tileId, imageKey: tile.imageKey, boardX: finalBoardX, boardY: finalBoardY, rotation };
   const createdCellIds: string[] = [];

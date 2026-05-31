@@ -11,7 +11,7 @@ import { MazeTile } from "./MazeTile";
 import { calculateBoardGeometry, cellToScreen, tileToScreen } from "../utils/boardGeometry";
 import { GuardPawn } from "./GuardPawn";
 import { useResponsiveTileSize } from "../hooks/useResponsiveTileSize";
-import { placementFromExploration } from "../utils/explorationPlacement";
+import { hasSearchArrowConflict, placementFromExploration } from "../utils/explorationPlacement";
 
 export function MazeBoard({ session }: { session: GameSession }) {
   const {
@@ -104,12 +104,17 @@ export function MazeBoard({ session }: { session: GameSession }) {
         );
       })
     : false;
+  const pendingSearchArrowConflict =
+    pendingTilePlacement && pendingExplorationCell
+      ? hasSearchArrowConflict(session, pendingExplorationCell, nextTileId, pendingTilePlacement.boardX, pendingTilePlacement.boardY, pendingTilePlacement.rotation)
+      : false;
   const pendingTileIsValid = Boolean(
     pendingTilePlacement &&
       pendingExpectedPlacement &&
       pendingTilePlacement.boardX === pendingExpectedPlacement.boardX &&
       pendingTilePlacement.boardY === pendingExpectedPlacement.boardY &&
-      !pendingOverlaps,
+      !pendingOverlaps &&
+      !pendingSearchArrowConflict,
   );
   const directionToCell = (heroId: string, cellId: string) => {
     if (heroId !== selectedHeroId) return undefined;
