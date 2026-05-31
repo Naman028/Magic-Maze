@@ -490,14 +490,16 @@ input:focus, select:focus { border-color: #c084fc; box-shadow: 0 0 0 3px rgba(19
   z-index: 24;
   display: block;
   padding: 0;
-  border: 2px solid rgba(144, 255, 118, .95);
+  border: 0;
+  outline: 2px solid rgba(144, 255, 118, .95);
+  outline-offset: -2px;
   border-radius: 10px;
   background: transparent;
   cursor: copy;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, .16), 0 0 24px rgba(144, 255, 118, .32);
 }
 .pending-tile-placement.invalid-placement {
-  border-color: rgba(239, 68, 68, .95);
+  outline-color: rgba(239, 68, 68, .95);
   cursor: not-allowed;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, .18), 0 0 24px rgba(239, 68, 68, .35);
 }
