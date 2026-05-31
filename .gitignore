@@ -46,12 +46,12 @@ pnpm-debug.log*
 .npm-cache/
 
 # ML datasets, generated models, and run artifacts
-datasets/
-dataset/
-data/
-runs/
-outputs/
-checkpoints/
+/datasets/
+/dataset/
+/data/
+/runs/
+/outputs/
+/checkpoints/
 *.pt
 *.pth
 *.onnx
