@@ -1,0 +1,36 @@
+{
+  "name": "magic-maze-backend",
+  "version": "1.0.0",
+  "description": "Backend for Magic Maze Online",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run --pool=forks --poolOptions.forks.singleFork=true",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "magic-maze",
+    "cooperative-game",
+    "realtime",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "vitest": "^1.1.0"
+  }
+}
