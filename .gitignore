@@ -71,3 +71,5 @@ logs/
 *.tar.gz
 *.7z
 *.rar
+
+PRODUCTION_READINESS.md
