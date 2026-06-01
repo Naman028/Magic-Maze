@@ -21,7 +21,7 @@ export interface BoardGeometry {
 export function calculateBoardGeometry(session: GameSession, tileSize: number, mode: BoardBoundsMode = "tiles"): BoardGeometry {
   const cells = Object.values(session.board.cells ?? {});
   const placedTiles = session.placedTiles ?? [];
-  const paddingCells = 8;
+  const paddingCells = 14;
   const cellSize = getCellSize(tileSize);
   const projectedRects = [
     ...placedTiles.map((tile) => {

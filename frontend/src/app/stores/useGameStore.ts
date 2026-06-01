@@ -92,9 +92,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       session: state.session ? { ...state.session, communicationState } : state.session,
     })),
   updateTimer: (sandTimer) =>
-    set((state) => ({
-      session: state.session ? { ...state.session, sandTimer } : state.session,
-    })),
+    set((state) => {
+      if (!state.session) return { session: state.session };
+      const currentTimer = state.session.sandTimer;
+      if (sandTimer.usedSandTimerCellIds.length < currentTimer.usedSandTimerCellIds.length) {
+        return { session: state.session };
+      }
+      return { session: { ...state.session, sandTimer } };
+    }),
 }));
 
 export function restoreStoredIdentity() {

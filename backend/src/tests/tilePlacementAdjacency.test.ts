@@ -72,7 +72,7 @@ describe("tile placement physical adjacency", () => {
     expect(entry.y).toBe(room.session.board.cells["tile1A-1-3"].y + 1);
   });
 
-  it("rejects a matching colored search arrow as the tile connection", () => {
+  it("still requires a physical entry arrow for the tile connection", () => {
     const context = createExplorationReadyRoom("tile1A-2-0", Direction.North, 1, -4, HeroType.Dwarf, "hero-dwarf");
     context.room.session.tileDeck.remainingTileIds = ["tile2"];
 

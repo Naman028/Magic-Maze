@@ -40,6 +40,21 @@ describe("sand timer rules", () => {
     expect(room.session.sandTimer.remainingSeconds).toBe(55);
   });
 
+  it("adds time when the sand timer is almost empty", () => {
+    const { service, room } = createStartedRoom();
+    room.session.sandTimer.remainingSeconds = 2;
+    const timerCellId = placeHeroOnSandTimer(room);
+
+    service.activateSandTimer({
+      roomCode: room.roomCode,
+      playerId: room.session.players[0].playerId,
+      heroId: "hero-mage",
+      cellId: timerCellId,
+    });
+
+    expect(room.session.sandTimer.remainingSeconds).toBe(178);
+  });
+
   it("cannot be flipped after theft", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;

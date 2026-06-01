@@ -33,6 +33,11 @@ const ENCODED_TILE_ENTERS: Record<string, string> = {
   tile17: "400028003600400030h012000100395031k027000900400040001020040039j0",
   tile18: "400040001010400030002700120040004000010030003970400013k040004000",
   tile19: "28003600043036000940040030000900010027004800022013k010h040001350",
+  tile20: "400028003600400027101200040736000400360a40000140400010h0400013j0",
+  tile21: "280030003000360003303000360010002800300012000120040027h048001400",
+  tile22: "378040000420360009h028002700120004001200040036004000281030001200",
+  tile23: "280027003000398009201000400040001350040036002830400028h003001200",
+  tile24: "400031702700360030402700120010004000100040000110316000h048001400",
 };
 
 function oppositeDirection(direction?: string) {
@@ -89,63 +94,6 @@ function referenceEntryForTile(tileId?: string, direction?: string, rotation: 0 
   }
 
   return undefined;
-}
-
-function directionDelta(direction?: string) {
-  switch (direction) {
-    case "North":
-      return { dx: 0, dy: -1 };
-    case "South":
-      return { dx: 0, dy: 1 };
-    case "East":
-      return { dx: 1, dy: 0 };
-    case "West":
-      return { dx: -1, dy: 0 };
-    default:
-      return undefined;
-  }
-}
-
-function tileSearchArrows(tileId: string | undefined, rotation: 0 | 90 | 180 | 270) {
-  const encoded = tileId ? ENCODED_TILE_ENTERS[tileId] : undefined;
-  if (!encoded) return [];
-
-  const arrows: Array<{ x: number; y: number; direction: string }> = [];
-  for (let y = 0; y < BACKEND_TILE_GRID_SIZE; y += 1) {
-    for (let x = 0; x < BACKEND_TILE_GRID_SIZE; x += 1) {
-      const block = encoded.substring((y * BACKEND_TILE_GRID_SIZE + x) * 4, (y * BACKEND_TILE_GRID_SIZE + x) * 4 + 4);
-      if (!gateHeroType(block[2])) continue;
-      const baseDirection = edgeDirection(x, y);
-      if (!baseDirection) continue;
-      arrows.push({
-        ...rotateCoordinate(x, y, rotation),
-        direction: rotateDirection(baseDirection, rotation),
-      });
-    }
-  }
-  return arrows;
-}
-
-export function hasSearchArrowConflict(
-  session: GameSession,
-  explorationCell: MazeCell,
-  tileId: string | undefined,
-  boardX: number,
-  boardY: number,
-  rotation: 0 | 90 | 180 | 270,
-) {
-  const intendedConnectionDirection = oppositeDirection(explorationCell.explorationDirection);
-  const cells = Object.values(session.board.cells);
-
-  return tileSearchArrows(tileId, rotation).some((arrow) => {
-    const delta = directionDelta(arrow.direction);
-    if (!delta) return false;
-
-    const adjacentCell = cells.find((cell) => cell.x === boardX + arrow.x + delta.dx && cell.y === boardY + arrow.y + delta.dy);
-    if (!adjacentCell) return false;
-
-    return adjacentCell.cellId !== explorationCell.cellId || arrow.direction !== intendedConnectionDirection;
-  });
 }
 
 export function hasMatchingEntryForExploration(tileId: string | undefined, cell: MazeCell, rotation: 0 | 90 | 180 | 270 = 0) {
