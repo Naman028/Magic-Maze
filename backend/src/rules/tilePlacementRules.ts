@@ -177,16 +177,11 @@ function getCompatibleEntryLocalCellId(cells: TileCellDefinition[], explorationC
   const required = requiredEntryPositionForArrow(explorationCell, direction);
   const entry = cells.find((cell) => {
     const isPhysicalEntry = cell.isEntryPoint === true && cell.entryDirection === required.entryDirection;
-    const isMatchingSearchArrow =
-      cell.type === CellType.Exploration &&
-      cell.explorationForHeroType === explorationCell.explorationForHeroType &&
-      cell.explorationDirection === required.entryDirection;
-
-    return isPhysicalEntry || isMatchingSearchArrow;
+    return isPhysicalEntry;
   });
 
   if (!entry) {
-    throw new Error(`New tile does not have a physically aligned ${required.entryDirection} entry or matching search arrow.`);
+    throw new Error(`New tile does not have a physically aligned ${required.entryDirection} entry arrow.`);
   }
 
   return entry.localCellId;

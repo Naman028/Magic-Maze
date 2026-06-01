@@ -71,22 +71,10 @@ function gateHeroType(itemBit: string) {
   return ["Elf", "Dwarf", "Mage", "Barbarian"][itemIndex];
 }
 
-function referenceEntryForTile(tileId?: string, direction?: string, rotation: 0 | 90 | 180 | 270 = 0, heroType?: string) {
+function referenceEntryForTile(tileId?: string, direction?: string, rotation: 0 | 90 | 180 | 270 = 0) {
   const encoded = tileId ? ENCODED_TILE_ENTERS[tileId] : undefined;
   const requiredEntryDirection = oppositeDirection(direction);
   if (!encoded || !requiredEntryDirection) return undefined;
-
-  for (let y = 0; y < BACKEND_TILE_GRID_SIZE; y += 1) {
-    for (let x = 0; x < BACKEND_TILE_GRID_SIZE; x += 1) {
-      const block = encoded.substring((y * BACKEND_TILE_GRID_SIZE + x) * 4, (y * BACKEND_TILE_GRID_SIZE + x) * 4 + 4);
-      if (gateHeroType(block[2]) !== heroType) continue;
-      const baseDirection = edgeDirection(x, y);
-      if (!baseDirection) continue;
-      const rotatedDirection = rotateDirection(baseDirection, rotation);
-      if (rotatedDirection !== requiredEntryDirection) continue;
-      return rotateCoordinate(x, y, rotation);
-    }
-  }
 
   for (let y = 0; y < BACKEND_TILE_GRID_SIZE; y += 1) {
     for (let x = 0; x < BACKEND_TILE_GRID_SIZE; x += 1) {
@@ -161,11 +149,11 @@ export function hasSearchArrowConflict(
 }
 
 export function hasMatchingEntryForExploration(tileId: string | undefined, cell: MazeCell, rotation: 0 | 90 | 180 | 270 = 0) {
-  return Boolean(referenceEntryForTile(tileId, cell.explorationDirection, rotation, cell.explorationForHeroType));
+  return Boolean(referenceEntryForTile(tileId, cell.explorationDirection, rotation));
 }
 
 export function placementFromExploration(session: GameSession, cell: MazeCell, tileId?: string, rotation: 0 | 90 | 180 | 270 = 0) {
-  const referenceEntry = referenceEntryForTile(tileId, cell.explorationDirection, rotation, cell.explorationForHeroType);
+  const referenceEntry = referenceEntryForTile(tileId, cell.explorationDirection, rotation);
   if (referenceEntry) {
     const dx = cell.explorationDirection === "East" ? 1 : cell.explorationDirection === "West" ? -1 : 0;
     const dy = cell.explorationDirection === "South" ? 1 : cell.explorationDirection === "North" ? -1 : 0;

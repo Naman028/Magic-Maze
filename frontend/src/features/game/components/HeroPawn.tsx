@@ -6,7 +6,7 @@ import { getHeroDisplayName, getHeroPawnFallbackImage, getHeroPawnImage } from "
 export function HeroPawn({ hero, cell, geometry, selected, onSelect, onDragStart }: { hero: Hero; cell?: MazeCell; geometry: BoardGeometry; selected: boolean; onSelect: () => void; onDragStart?: (event: PointerEvent<HTMLButtonElement>) => void }) {
   if (!cell || hero.hasEscaped) return null;
   const pos = heroToScreen(cell, geometry);
-  const pawnSize = Math.max(24, Math.min(56, geometry.cellSize * 0.54));
+  const pawnSize = Math.max(30, Math.min(68, geometry.cellSize * 0.68));
   return (
     <button
       className={`hero-token hero-token-${hero.heroType.toLowerCase()} ${selected ? "selected" : ""}`}
