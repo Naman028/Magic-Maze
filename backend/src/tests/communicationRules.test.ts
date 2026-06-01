@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CommunicationMode, GameStatus } from "../game/gameTypes.js";
 import { SCENARIOS } from "../data/scenarios.js";
-import { createRoomService, createStartedRoom, placeHero } from "./testHelpers.js";
+import { createRoomService, createStartedRoom, placeHero, placeHeroOnSandTimer } from "./testHelpers.js";
 
 describe("communication rules", () => {
   it("starts waiting rooms with open communication", () => {
@@ -75,12 +75,12 @@ describe("communication rules", () => {
   it("ends discussion and unlocks actions", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
-    placeHero(room, "hero-mage", "tile1A-1-0");
+    const timerCellId = placeHeroOnSandTimer(room);
     service.activateSandTimer({
       roomCode: room.roomCode,
       playerId: room.session.players[0].playerId,
       heroId: "hero-mage",
-      cellId: "tile1A-1-0",
+      cellId: timerCellId,
     });
 
     service.endDiscussion({ roomCode: room.roomCode, playerId: room.session.players[0].playerId });
@@ -91,14 +91,14 @@ describe("communication rules", () => {
     expect(room.session.communicationState.mode).toBe(CommunicationMode.SilentOnly);
   });
 
-  it("keeps Scenario 1 communication open after game start", () => {
+  it("sets Scenario 1 communication to SilentOnly after game start", () => {
     const service = createRoomService();
     const room = service.createRoom({ nickname: "Host" });
     service.startGame(room.roomCode, room.session.players[0].playerId);
 
-    expect(room.session.communicationState.mode).toBe(CommunicationMode.Open);
-    expect(room.session.communicationState.chatAllowed).toBe(true);
-    expect(room.session.communicationState.voiceAllowed).toBe(true);
+    expect(room.session.communicationState.mode).toBe(CommunicationMode.SilentOnly);
+    expect(room.session.communicationState.chatAllowed).toBe(false);
+    expect(room.session.communicationState.voiceAllowed).toBe(false);
   });
 
   it("sets Scenario 2 communication to SilentOnly after game start", () => {

@@ -48,6 +48,26 @@ export function placeHero(room: Room, heroId: string, cellId: string): void {
   hero.isOnItemSpace = cell.type === CellType.Item && cell.itemForHeroType === hero.heroType;
 }
 
+export function markCellAsSandTimer(room: Room, cellId = "tile1A-1-0"): string {
+  const cell = room.session.board.cells[cellId];
+  if (!cell) {
+    throw new Error(`Missing cell ${cellId}`);
+  }
+  cell.type = CellType.SandTimer;
+  delete cell.itemForHeroType;
+  delete cell.exitForHeroType;
+  delete cell.vortexForHeroType;
+  delete cell.explorationForHeroType;
+  delete cell.explorationDirection;
+  return cellId;
+}
+
+export function placeHeroOnSandTimer(room: Room, heroId = "hero-mage", cellId = "tile1A-1-0"): string {
+  markCellAsSandTimer(room, cellId);
+  placeHero(room, heroId, cellId);
+  return cellId;
+}
+
 export function upsertTestCell(room: Room, cell: MazeCell): void {
   room.session.board.cells[cell.cellId] = cell;
 }

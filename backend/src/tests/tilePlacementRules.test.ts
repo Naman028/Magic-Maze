@@ -189,7 +189,7 @@ describe("tile placement rules", () => {
     expect(room.session.board.cells["tile2:tile2-3-2"].neighborCellIds.East).toBe("tile1A-0-1");
   });
 
-  it("places the next tile from the solo Search action on the starter dwarf exploration space", () => {
+  it("places the next tile from the solo Search action on the starter barbarian exploration space", () => {
     const { service, room } = createStartedRoom(1);
     room.session.tileDeck.remainingTileIds = ["tile2", "tile3", "tile4", "tile5", "tile6", "tile7", "tile8", "tile9"];
     const player = room.session.players[0];
@@ -199,12 +199,12 @@ describe("tile placement rules", () => {
       playerId: player.playerId,
       targetAction: ActionType.ExploreTile,
     });
-    placeHero(room, "hero-dwarf", "tile1A-2-0");
+    placeHero(room, "hero-barbarian", "tile1A-2-0");
 
     const result = service.explorePlaceTile({
       roomCode: room.roomCode,
       playerId: player.playerId,
-      heroId: "hero-dwarf",
+      heroId: "hero-barbarian",
       explorationCellId: "tile1A-2-0",
       boardX: 0,
       boardY: -1,

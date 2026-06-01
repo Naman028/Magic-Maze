@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CellType } from "../game/gameTypes.js";
-import { createStartedRoom, givePlayerAction, markAllButMageEscaped, placeHero, setTheftReadyExceptMage } from "./testHelpers.js";
+import { createStartedRoom, givePlayerAction, markAllButMageEscaped, placeHero, placeHeroOnSandTimer, setTheftReadyExceptMage } from "./testHelpers.js";
 import { ActionType, Direction } from "../game/gameTypes.js";
 
 describe("objective tracking", () => {
@@ -23,8 +23,8 @@ describe("objective tracking", () => {
 
   it("timer activation completes UseTimer", () => {
     const { service, room } = createStartedRoom();
-    placeHero(room, "hero-mage", "tile1A-1-0");
-    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: "tile1A-1-0" });
+    const timerCellId = placeHeroOnSandTimer(room);
+    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: timerCellId });
     expect(room.session.objectives.find((objective) => objective.type === "UseTimer")?.isCompleted).toBe(true);
   });
 

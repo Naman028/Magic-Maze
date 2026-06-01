@@ -398,9 +398,9 @@ export function MazeBoard({ session }: { session: GameSession }) {
 }
 
 function UsedTimerMarker({ cell, geometry }: { cell?: MazeCell; geometry: ReturnType<typeof calculateBoardGeometry> }) {
-  if (!cell) return null;
+  if (!cell || cell.type !== "SandTimer") return null;
   const pos = cellToScreen(cell, geometry);
-  const size = Math.max(18, Math.min(42, geometry.cellSize * 0.78));
+  const size = Math.max(16, Math.min(34, geometry.cellSize * 0.62));
   return (
     <img
       className="used-timer-marker"

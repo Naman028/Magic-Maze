@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { ActionType, Direction } from "../game/gameTypes.js";
-import { createStartedRoom, givePlayerAction, placeHero } from "./testHelpers.js";
+import { createStartedRoom, givePlayerAction, placeHero, placeHeroOnSandTimer } from "./testHelpers.js";
 
 describe("communication flow", () => {
   it("next valid move closes temporary timer communication", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
-    placeHero(room, "hero-mage", "tile1A-1-0");
-    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: "tile1A-1-0" });
+    const timerCellId = placeHeroOnSandTimer(room);
+    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: timerCellId });
     givePlayerAction(room, 0, ActionType.MoveEast);
     service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.East });
     expect(room.session.communicationState.mode).toBe("SilentOnly");
@@ -17,8 +17,8 @@ describe("communication flow", () => {
   it("invalid move does not close temporary communication", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
-    placeHero(room, "hero-mage", "tile1A-1-0");
-    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: "tile1A-1-0" });
+    const timerCellId = placeHeroOnSandTimer(room);
+    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: timerCellId });
     expect(() => service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North })).toThrow();
     expect(room.session.communicationState.mode).toBe("DiscussionOpen");
   });
@@ -37,7 +37,7 @@ describe("communication flow", () => {
     expect(room.session.communicationState.mode).toBe("SilentOnly");
   });
 
-  it("scenario free communication does not auto-close after movement", () => {
+  it("temporary communication closes after movement even if a scenario is marked always-open", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
     room.session.scenario.communicationAlwaysOpen = true;
@@ -46,7 +46,7 @@ describe("communication flow", () => {
     delete room.session.board.cells["tile1A-start-dwarf"].occupiedByHeroId;
     givePlayerAction(room, 0, ActionType.MoveEast);
     service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.East });
-    expect(room.session.communicationState.mode).toBe("Open");
+    expect(room.session.communicationState.mode).toBe("SilentOnly");
   });
 });
 

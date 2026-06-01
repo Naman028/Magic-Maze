@@ -401,8 +401,8 @@ input:focus, select:focus { border-color: #c084fc; box-shadow: 0 0 0 3px rgba(19
 
 .center-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
 .app-shell {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow: auto;
 }
 .lobby-header {
   min-height: 112px;
@@ -432,14 +432,14 @@ input:focus, select:focus { border-color: #c084fc; box-shadow: 0 0 0 3px rgba(19
   font-size: 15px;
 }
 .lobby-grid {
-  height: calc(100vh - 112px);
+  min-height: calc(100vh - 112px);
   padding: 24px clamp(18px, 3.2vw, 56px);
   display: grid;
   grid-template-columns: minmax(210px, 0.72fr) minmax(340px, 2.14fr) minmax(300px, 1.7fr);
   grid-auto-rows: max-content;
   gap: 18px;
   align-items: start;
-  overflow: hidden;
+  overflow: visible;
 }
 .lobby-grid .panel {
   padding: 16px;
@@ -1103,3 +1103,19 @@ input:focus, select:focus { border-color: #c084fc; box-shadow: 0 0 0 3px rgba(19
   .board-side-stack { grid-template-columns: 1fr 1fr; }
   .action-panel { position: sticky; bottom: 0; z-index: 20; }
 }
+
+/* ── Lobby v2 layout ─────────────────────────────────────────── */
+.lv2-shell  { height: 100vh; overflow-y: auto; }
+.lv2-grid   {
+  display: grid;
+  grid-template-columns: 340px 1fr 340px;
+  gap: 20px;
+  padding: 20px clamp(14px, 2.6vw, 44px) 28px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .lv2-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Tailwind utilities (no preflight — existing styles are safe) */
+@tailwind utilities;

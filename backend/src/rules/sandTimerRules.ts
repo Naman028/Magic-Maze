@@ -32,8 +32,10 @@ export function assertCanActivateSandTimer(session: GameSession, heroId: string,
 
 export function activateSandTimer(session: GameSession, heroId: string, cellId: string): void {
   assertCanActivateSandTimer(session, heroId, cellId);
+  const totalSeconds = session.difficultySettings.timeLimitSeconds;
+  const elapsedSeconds = totalSeconds - session.sandTimer.remainingSeconds;
   session.sandTimer.usedSandTimerCellIds.push(cellId);
-  session.sandTimer.remainingSeconds = session.difficultySettings.timeLimitSeconds;
+  session.sandTimer.remainingSeconds = Math.max(1, Math.min(totalSeconds, elapsedSeconds));
   openTemporaryCommunication(session, "SandTimer");
   completeObjective(session, "UseTimer");
   addEffect(session, { effectType: "TimerFlipped", heroId, cellId, soundKey: "timer-flip" });

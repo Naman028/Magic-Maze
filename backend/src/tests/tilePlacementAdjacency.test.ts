@@ -72,25 +72,21 @@ describe("tile placement physical adjacency", () => {
     expect(entry.y).toBe(room.session.board.cells["tile1A-1-3"].y + 1);
   });
 
-  it("accepts a matching colored search arrow as the tile connection", () => {
+  it("rejects a matching colored search arrow as the tile connection", () => {
     const context = createExplorationReadyRoom("tile1A-2-0", Direction.North, 1, -4, HeroType.Dwarf, "hero-dwarf");
     context.room.session.tileDeck.remainingTileIds = ["tile2"];
 
-    const { room } = context.service.explorePlaceTile({
-      roomCode: context.room.roomCode,
-      playerId: context.explorer.playerId,
-      heroId: context.heroId,
-      explorationCellId: "tile1A-2-0",
-      boardX: 1,
-      boardY: -4,
-      rotation: 0,
-    });
-    const entry = room.session.board.cells[room.session.board.cells["tile1A-2-0"].neighborCellIds.North!];
-
-    expect(entry.type).toBe(CellType.Exploration);
-    expect(entry.explorationForHeroType).toBe(HeroType.Dwarf);
-    expect(entry.x).toBe(room.session.board.cells["tile1A-2-0"].x);
-    expect(entry.y).toBe(room.session.board.cells["tile1A-2-0"].y - 1);
+    expect(() =>
+      context.service.explorePlaceTile({
+        roomCode: context.room.roomCode,
+        playerId: context.explorer.playerId,
+        heroId: context.heroId,
+        explorationCellId: "tile1A-2-0",
+        boardX: 1,
+        boardY: -4,
+        rotation: 0,
+      }),
+    ).toThrow("entry arrow");
   });
 
   it("rejects placement if no physically aligned entry exists", () => {

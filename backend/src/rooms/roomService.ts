@@ -158,6 +158,7 @@ export interface MoveHeroResult {
   room: Room;
   theftTriggered: boolean;
   victoryTriggered: boolean;
+  timerFlipped: boolean;
 }
 
 export interface LegalMovesResult {
@@ -285,14 +286,16 @@ export class RoomService {
     assertMovementAllowedForHero(room.session, hero, currentCell, targetCell, input.direction);
     assertTargetNotOccupied(targetCell);
     this.closeMicBeforeValidAction(room);
+    const timerUsesBefore = room.session.sandTimer.usedSandTimerCellIds.length;
     moveHero(hero, currentCell, targetCell);
     addEffect(room.session, { effectType: "HeroMoved", heroId: hero.heroId, cellId: targetCell.cellId, animationKey: "move" });
     this.handlePostHeroPositionEffects(room, hero.heroId);
+    const timerFlipped = room.session.sandTimer.usedSandTimerCellIds.length > timerUsesBefore;
     const theftTriggered = applyTheftIfTriggered(room.session);
     applyEscapeIfOnExit(room.session, hero.heroId);
     const victoryTriggered = applyVictoryIfComplete(room.session);
     room.session.updatedAt = Date.now();
-    return { room, theftTriggered, victoryTriggered };
+    return { room, theftTriggered, victoryTriggered, timerFlipped };
   }
 
   moveHeroTo(input: MoveHeroToInput): MoveHeroResult {
@@ -310,14 +313,16 @@ export class RoomService {
     if (!hero) throw new Error("Hero does not exist.");
     const { currentCell, targetCell } = getReachableTargetCell(room.session, player, hero, input.direction, input.targetCellId);
     this.closeMicBeforeValidAction(room);
+    const timerUsesBefore = room.session.sandTimer.usedSandTimerCellIds.length;
     moveHero(hero, currentCell, targetCell);
     addEffect(room.session, { effectType: "HeroMoved", heroId: hero.heroId, cellId: targetCell.cellId, animationKey: "move" });
     this.handlePostHeroPositionEffects(room, hero.heroId);
+    const timerFlipped = room.session.sandTimer.usedSandTimerCellIds.length > timerUsesBefore;
     const theftTriggered = applyTheftIfTriggered(room.session);
     applyEscapeIfOnExit(room.session, hero.heroId);
     const victoryTriggered = applyVictoryIfComplete(room.session);
     room.session.updatedAt = Date.now();
-    return { room, theftTriggered, victoryTriggered };
+    return { room, theftTriggered, victoryTriggered, timerFlipped };
   }
 
   getLegalMoves(input: LegalMovesInput): LegalMovesResult {

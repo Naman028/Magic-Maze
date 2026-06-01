@@ -1,31 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { ActionType, Direction, GameStatus } from "../game/gameTypes.js";
-import { createStartedRoom, givePlayerAction, placeHero, setTheftReadyExceptMage } from "./testHelpers.js";
+import { createStartedRoom, givePlayerAction, markCellAsSandTimer, placeHero, placeHeroOnSandTimer, setTheftReadyExceptMage } from "./testHelpers.js";
 
 describe("sand timer difficulty", () => {
   it.each([
     ["Easy", 240],
     ["Normal", 180],
     ["Hard", 120],
-  ] as const)("resets to %s difficulty time", (difficulty, expected) => {
+  ] as const)("flips %s timer to elapsed sand", (difficulty, expected) => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
     room.session.difficultySettings.difficulty = difficulty;
     room.session.difficultySettings.timeLimitSeconds = expected;
     room.session.sandTimer.remainingSeconds = 3;
-    placeHero(room, "hero-mage", "tile1A-1-0");
-    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: "tile1A-1-0" });
-    expect(room.session.sandTimer.remainingSeconds).toBe(expected);
+    const timerCellId = placeHeroOnSandTimer(room);
+    service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: timerCellId });
+    expect(room.session.sandTimer.remainingSeconds).toBe(expected - 3);
   });
 
   it("auto-flips when movement lands on an unused timer", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
     givePlayerAction(room, 0, ActionType.MoveNorth);
+    const timerCellId = markCellAsSandTimer(room);
     placeHero(room, "hero-mage", "tile1A-start-mage");
     room.session.sandTimer.remainingSeconds = 5;
     service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North });
-    expect(room.session.sandTimer.usedSandTimerCellIds).toContain("tile1A-1-0");
+    expect(room.session.sandTimer.usedSandTimerCellIds).toContain(timerCellId);
+    expect(room.session.sandTimer.remainingSeconds).toBe(175);
     expect(room.session.communicationState.reason).toBe("SandTimer");
   });
 
@@ -33,8 +35,9 @@ describe("sand timer difficulty", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
     givePlayerAction(room, 0, ActionType.MoveNorth);
+    const timerCellId = markCellAsSandTimer(room);
     placeHero(room, "hero-mage", "tile1A-start-mage");
-    room.session.sandTimer.usedSandTimerCellIds.push("tile1A-1-0");
+    room.session.sandTimer.usedSandTimerCellIds.push(timerCellId);
     service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North });
     expect(room.session.communicationState.reason).not.toBe("SandTimer");
 
@@ -43,7 +46,7 @@ describe("sand timer difficulty", () => {
     placeHero(other.room, "hero-mage", "tile1A-start-mage");
     other.room.session.status = GameStatus.Escape;
     other.service.moveHero({ roomCode: other.room.roomCode, playerId: other.room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North });
-    expect(other.room.session.sandTimer.usedSandTimerCellIds).not.toContain("tile1A-1-0");
+    expect(other.room.session.sandTimer.usedSandTimerCellIds).not.toContain(timerCellId);
   });
 
   it("cannot flip after theft final countdown", () => {
@@ -52,8 +55,8 @@ describe("sand timer difficulty", () => {
     setTheftReadyExceptMage(room);
     givePlayerAction(room, 0, ActionType.MoveNorth);
     service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North });
-    placeHero(room, "hero-mage", "tile1A-1-0");
-    expect(() => service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: "tile1A-1-0" })).toThrow();
+    const timerCellId = placeHeroOnSandTimer(room);
+    expect(() => service.activateSandTimer({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", cellId: timerCellId })).toThrow();
   });
 });
 

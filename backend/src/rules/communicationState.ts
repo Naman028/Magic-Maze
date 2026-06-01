@@ -27,15 +27,11 @@ export function setCommunicationMode(session: GameSession, mode: CommunicationMo
 }
 
 export function openTemporaryCommunication(session: GameSession, reason: Extract<CommunicationReason, "SandTimer" | "Loudspeaker" | "ElfAbility">): void {
-  if (session.scenario.communicationAlwaysOpen) {
-    setCommunicationMode(session, CommunicationMode.Open, false, "ScenarioFreeCommunication", false);
-    return;
-  }
   setCommunicationMode(session, CommunicationMode.DiscussionOpen, false, reason, true);
 }
 
 export function closeTemporaryCommunicationIfNeeded(session: GameSession): boolean {
-  if (!session.communicationState.autoCloseOnNextGameAction || session.scenario.communicationAlwaysOpen) return false;
+  if (!session.communicationState.autoCloseOnNextGameAction) return false;
   setCommunicationMode(session, CommunicationMode.SilentOnly, false, "SilentGameplay", false);
   return true;
 }

@@ -114,7 +114,7 @@ describe("metadata alignment", () => {
 
   it("encodes Scenario 1 and Scenario 2 exit/communication rules", () => {
     expect(SCENARIOS.scenario1.matchingExitsRequired).toBe(false);
-    expect(SCENARIOS.scenario1.communicationAlwaysOpen).toBe(true);
+    expect(SCENARIOS.scenario1.communicationAlwaysOpen).toBe(false);
     expect(SCENARIOS.scenario2.matchingExitsRequired).toBe(true);
     expect(SCENARIOS.scenario2.communicationAlwaysOpen).toBe(false);
   });

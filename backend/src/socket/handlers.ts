@@ -21,6 +21,13 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
   const emitNewEffects = (roomCode: string, effects: unknown[]) => {
     for (const effect of effects) io.to(roomCode).emit(ServerEvent.GameEffect, effect);
   };
+  const emitSandTimerFlip = (room: ReturnType<RoomService["getRoom"]>) => {
+    io.to(room.roomCode).emit(ServerEvent.DiscussionStarted, room.session);
+    io.to(room.roomCode).emit(ServerEvent.CommunicationUpdated, room.session.communicationState);
+    io.to(room.roomCode).emit(ServerEvent.TimerUpdated, { roomCode: room.roomCode, sandTimer: room.session.sandTimer });
+    io.to(room.roomCode).emit(ServerEvent.ActionCardsRotated, room.session.players.map((player) => ({ playerId: player.playerId, actionCardId: player.assignedActionCard?.actionCardId })));
+    io.to(room.roomCode).emit(ServerEvent.ObjectivesUpdated, room.session.objectives);
+  };
 
   socket.on(ClientEvent.RoomCreate, (payload) => {
     try {
@@ -96,7 +103,7 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
   socket.on(ClientEvent.HeroMove, (payload) => {
     try {
       const input = moveHeroSchema.parse(payload);
-      const { room, theftTriggered, victoryTriggered } = roomService.moveHero({ ...input, socketId: socket.id });
+      const { room, theftTriggered, victoryTriggered, timerFlipped } = roomService.moveHero({ ...input, socketId: socket.id });
       const effects = room.session.effectLog.slice(-3);
       emitActionAccepted(ClientEvent.HeroMove, room.roomCode);
       if (theftTriggered) {
@@ -104,6 +111,9 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
       }
       if (victoryTriggered) {
         io.to(room.roomCode).emit(ServerEvent.GameVictory, room.session.result);
+      }
+      if (timerFlipped) {
+        emitSandTimerFlip(room);
       }
       io.to(room.roomCode).emit(ServerEvent.StateUpdated, room.session);
       emitNewEffects(room.roomCode, effects);
@@ -115,11 +125,14 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
   socket.on(ClientEvent.HeroMoveTo, (payload) => {
     try {
       const input = moveHeroToSchema.parse(payload);
-      const { room, theftTriggered, victoryTriggered } = roomService.moveHeroTo({ ...input, socketId: socket.id });
+      const { room, theftTriggered, victoryTriggered, timerFlipped } = roomService.moveHeroTo({ ...input, socketId: socket.id });
       const effects = room.session.effectLog.slice(-3);
       emitActionAccepted(ClientEvent.HeroMoveTo, room.roomCode);
       if (theftTriggered) io.to(room.roomCode).emit(ServerEvent.AlarmTriggered, room.session);
       if (victoryTriggered) io.to(room.roomCode).emit(ServerEvent.GameVictory, room.session.result);
+      if (timerFlipped) {
+        emitSandTimerFlip(room);
+      }
       io.to(room.roomCode).emit(ServerEvent.StateUpdated, room.session);
       emitNewEffects(room.roomCode, effects);
     } catch (error) {
@@ -169,12 +182,8 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
       const room = roomService.activateSandTimer({ ...input, socketId: socket.id });
       const effects = room.session.effectLog.slice(-2);
       emitActionAccepted(ClientEvent.SandTimerActivate, room.roomCode);
-      io.to(room.roomCode).emit(ServerEvent.DiscussionStarted, room.session);
-      io.to(room.roomCode).emit(ServerEvent.CommunicationUpdated, room.session.communicationState);
-      io.to(room.roomCode).emit(ServerEvent.TimerUpdated, { roomCode: room.roomCode, sandTimer: room.session.sandTimer });
-      io.to(room.roomCode).emit(ServerEvent.ActionCardsRotated, room.session.players.map((player) => ({ playerId: player.playerId, actionCardId: player.assignedActionCard?.actionCardId })));
+      emitSandTimerFlip(room);
       io.to(room.roomCode).emit(ServerEvent.StateUpdated, room.session);
-      io.to(room.roomCode).emit(ServerEvent.ObjectivesUpdated, room.session.objectives);
       emitNewEffects(room.roomCode, effects);
     } catch (error) {
       emitActionRejected(ClientEvent.SandTimerActivate, error);
