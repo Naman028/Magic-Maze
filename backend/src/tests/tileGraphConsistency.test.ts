@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MALL_TILES, TILE_SIZE } from "../data/mallTiles.js";
-import { Direction, HeroType } from "../game/gameTypes.js";
+import { CellType, Direction, HeroType } from "../game/gameTypes.js";
 import { createStartedRoom } from "./testHelpers.js";
 
 const deltaByDirection = {
@@ -66,6 +66,39 @@ describe("tile graph consistency", () => {
       expect(cell?.localX).toBe(expected.localX);
       expect(cell?.localY).toBe(expected.localY);
     }
+  });
+
+  it("matches tile1A visible hero-colour spaces to metadata", () => {
+    const cellsById = new Map(MALL_TILES.tile1A.cells.map((cell) => [cell.localCellId, cell]));
+
+    expect(cellsById.get("tile1A-2-0")).toMatchObject({
+      type: CellType.Exploration,
+      explorationForHeroType: HeroType.Dwarf,
+      explorationDirection: Direction.North,
+    });
+    expect(cellsById.get("tile1A-0-1")).toMatchObject({
+      type: CellType.Exploration,
+      explorationForHeroType: HeroType.Mage,
+      explorationDirection: Direction.West,
+    });
+    expect(cellsById.get("tile1A-3-2")).toMatchObject({
+      type: CellType.Exploration,
+      explorationForHeroType: HeroType.Elf,
+      explorationDirection: Direction.East,
+    });
+    expect(cellsById.get("tile1A-1-3")).toMatchObject({
+      type: CellType.Exploration,
+      explorationForHeroType: HeroType.Barbarian,
+      explorationDirection: Direction.South,
+    });
+    expect(cellsById.get("tile1A-3-1")).toMatchObject({
+      type: CellType.Vortex,
+      vortexForHeroType: HeroType.Barbarian,
+    });
+    expect(cellsById.get("tile1A-0-2")).toMatchObject({
+      type: CellType.Vortex,
+      vortexForHeroType: HeroType.Dwarf,
+    });
   });
 
   it("starts all heroes on the expected occupied starter cells", () => {

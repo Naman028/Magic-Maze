@@ -56,7 +56,6 @@ describe("metadata alignment", () => {
 
   it("uses visual stair endpoints for elevator tiles", () => {
     const expected = {
-      tile1A: [["tile1A-3-2", "tile1A-2-3"]],
       tile2: [
         ["tile2-0-1", "tile2-3-1"],
         ["tile2-1-0", "tile2-1-3"],
@@ -98,18 +97,17 @@ describe("metadata alignment", () => {
     expect(ACTION_CARDS.some((card) => card.actions.includes(ActionType.SendSignal))).toBe(false);
   });
 
-  it("keeps tile1A and tile1B distinct and placeholder-marked", () => {
+  it("keeps tile1A and tile1B distinct and reference-backed", () => {
     expect(MALL_TILES.tile1A.imageKey).toBe("tile0.jpg");
     expect(MALL_TILES.tile1B.imageKey).toBe("tile1.jpg");
-    expect(MALL_TILES.tile1A.metadataStatus).toBe("placeholder");
-    expect(MALL_TILES.tile1B.metadataStatus).toBe("placeholder");
+    expect(MALL_TILES.tile1A.metadataStatus).toBe("verified");
+    expect(MALL_TILES.tile1B.metadataStatus).toBe("verified");
     expect(JSON.stringify(MALL_TILES.tile1A.cells)).not.toBe(JSON.stringify(MALL_TILES.tile1B.cells));
   });
 
-  it("does not expose all four coloured exits on tile1A", () => {
+  it("does not expose artificial exits on tile1A", () => {
     const exitHeroTypes = MALL_TILES.tile1A.cells.filter((cell) => cell.type === CellType.Exit).map((cell) => cell.exitForHeroType);
-    expect(exitHeroTypes).toEqual([expect.any(String)]);
-    expect(exitHeroTypes).toHaveLength(1);
+    expect(exitHeroTypes).toEqual([]);
   });
 
   it("encodes Scenario 1 and Scenario 2 exit/communication rules", () => {

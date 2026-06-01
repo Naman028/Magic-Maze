@@ -1,5 +1,5 @@
 import { ACTION_CARDS } from "../data/actionCards.js";
-import { ActionType, CellType, GameStatus, HeroType, MazeCell, Room } from "../game/gameTypes.js";
+import { ActionType, CellType, Direction, GameStatus, HeroType, MazeCell, Room } from "../game/gameTypes.js";
 import { RoomService } from "../rooms/roomService.js";
 import { RoomStore } from "../rooms/roomStore.js";
 
@@ -144,12 +144,31 @@ export function findCardWithAction(action: ActionType) {
 
 export function markAllButMageEscaped(room: Room): void {
   clearOccupancy(room);
+  upsertTestCell(room, {
+    cellId: "test-before-exit-mage",
+    tileId: "test",
+    x: 30,
+    y: 30,
+    type: CellType.Normal,
+    walls: [],
+    neighborCellIds: { [Direction.South]: "test-exit-mage" },
+  });
+  upsertTestCell(room, {
+    cellId: "test-exit-mage",
+    tileId: "test",
+    x: 30,
+    y: 31,
+    type: CellType.Exit,
+    walls: [],
+    neighborCellIds: { [Direction.North]: "test-before-exit-mage" },
+    exitForHeroType: HeroType.Mage,
+  });
   for (const hero of room.session.heroes) {
       hero.hasItem = true;
       if (hero.heroType === HeroType.Mage) {
         hero.hasEscaped = false;
-      hero.positionCellId = "tile1A-start-elf";
-      room.session.board.cells["tile1A-start-elf"].occupiedByHeroId = hero.heroId;
+      hero.positionCellId = "test-before-exit-mage";
+      room.session.board.cells["test-before-exit-mage"].occupiedByHeroId = hero.heroId;
     } else {
       hero.hasEscaped = true;
       hero.positionCellId = null;

@@ -69,6 +69,8 @@ function commonEntryOverrides(): Record<string, Partial<TileCellDefinition>> {
 }
 
 const ENCODED_REFERENCE_TILES: Record<string, string> = {
+  "0": "31i02700002039703030000000003980316000000900311c31500040120f4000",
+  "1": "37i02800031036000930010036001000010003001200044c04002720390f4000",
   "2": "10f0400040004000130840004000377040004000280003h04000282203003950",
   "3": "4000280012h0400030400300270039i031502700090028304000106004001200",
   "4": "400037604000400030h0000039i0400040000100300027304000101040001380",
@@ -87,6 +89,11 @@ const ENCODED_REFERENCE_TILES: Record<string, string> = {
   "17": "400028003600400030h012000100395031k027000900400040001020040039j0",
   "18": "400040001010400030002700120040004000010030003970400013k040004000",
   "19": "28003600043036000940040030000900010027004800022013k010h040001350",
+  "20": "400028003600400027101200040736000400360a40000140400010h0400013j0",
+  "21": "280030003000360003303000360010002800300012000120040027h048001400",
+  "22": "378040000420360009h028002700120004001200040036004000281030001200",
+  "23": "280027003000398009201000400040001350040036002830400028h003001200",
+  "24": "400031702700360030402700120010004000100040000110316000h048001400",
 };
 
 function directionForEdgeCell(x: number, y: number): Direction | undefined {
@@ -112,13 +119,13 @@ function heroTypeFromReferenceColor(color: string): HeroType {
   }
 }
 
-function createReferenceCells(tileId: string, encoded: string): TileCellDefinition[] {
+function createReferenceCells(tileId: string, encoded: string, localCellIdOverrides: Record<string, string> = {}): TileCellDefinition[] {
   const blocks = Array.from({ length: 16 }, (_, index) => encoded.substring(index * 4, index * 4 + 4));
   const cells: TileCellDefinition[] = [];
   const escalatorLinks: Array<[string, string]> = [];
 
   function localCellId(x: number, y: number) {
-    return `${tileId}-${x}-${y}`;
+    return localCellIdOverrides[`${x},${y}`] ?? `${tileId}-${x}-${y}`;
   }
 
   for (let y = 0; y < TILE_SIZE; y += 1) {
@@ -321,50 +328,23 @@ export const MALL_TILES: Record<string, MallTileDefinition> = {
   tile1A: {
     tileId: "tile1A",
     imageKey: "tile0.jpg",
-    metadataStatus: "placeholder",
-    notes: ["4x4 playable starter tile metadata. Exact physical tile fidelity is pending."],
+    metadataStatus: "verified",
+    notes: ["Starter tile generated from the original reference tiles.json metadata."],
     entryPoints: [],
-    cells: [
-      { localCellId: "tile1A-0-0", localX: 0, localY: 0, type: CellType.Item, walls: [Direction.South], neighborLocalCellIds: { East: "tile1A-1-0", South: "tile1A-0-1" }, itemForHeroType: HeroType.Barbarian },
-      { localCellId: "tile1A-1-0", localX: 1, localY: 0, type: CellType.Normal, walls: [], neighborLocalCellIds: { West: "tile1A-0-0", East: "tile1A-2-0", South: "tile1A-start-mage" } },
-      { localCellId: "tile1A-2-0", localX: 2, localY: 0, type: CellType.Exploration, walls: [], neighborLocalCellIds: { West: "tile1A-1-0", East: "tile1A-3-0", South: "tile1A-start-dwarf" }, explorationForHeroType: HeroType.Barbarian, explorationDirection: Direction.North },
-      { localCellId: "tile1A-3-0", localX: 3, localY: 0, type: CellType.Vortex, walls: [Direction.South], neighborLocalCellIds: { West: "tile1A-2-0", South: "tile1A-3-1" }, vortexForHeroType: HeroType.Mage },
-      { localCellId: "tile1A-0-1", localX: 0, localY: 1, type: CellType.Exploration, walls: [Direction.North, Direction.South], neighborLocalCellIds: { North: "tile1A-0-0", East: "tile1A-start-mage", South: "tile1A-0-2" }, explorationForHeroType: HeroType.Mage, explorationDirection: Direction.West },
-      { localCellId: "tile1A-start-mage", localX: 1, localY: 1, type: CellType.Normal, walls: [], neighborLocalCellIds: { North: "tile1A-1-0", East: "tile1A-start-dwarf", South: "tile1A-start-barbarian", West: "tile1A-0-1" } },
-      { localCellId: "tile1A-start-dwarf", localX: 2, localY: 1, type: CellType.Normal, walls: [], neighborLocalCellIds: { North: "tile1A-2-0", East: "tile1A-3-1", South: "tile1A-start-elf", West: "tile1A-start-mage" } },
-      { localCellId: "tile1A-3-1", localX: 3, localY: 1, type: CellType.Vortex, walls: [Direction.North, Direction.South], neighborLocalCellIds: { North: "tile1A-3-0", South: "tile1A-3-2", West: "tile1A-start-dwarf" }, vortexForHeroType: HeroType.Dwarf },
-      { localCellId: "tile1A-0-2", localX: 0, localY: 2, type: CellType.Vortex, walls: [Direction.North, Direction.East, Direction.South], neighborLocalCellIds: { North: "tile1A-0-1", East: "tile1A-start-barbarian", South: "tile1A-0-3" }, vortexForHeroType: HeroType.Barbarian },
-      { localCellId: "tile1A-start-barbarian", localX: 1, localY: 2, type: CellType.Normal, walls: [], neighborLocalCellIds: { North: "tile1A-start-mage", East: "tile1A-start-elf", South: "tile1A-1-3", West: "tile1A-0-2" } },
-      { localCellId: "tile1A-start-elf", localX: 2, localY: 2, type: CellType.Normal, walls: [], neighborLocalCellIds: { North: "tile1A-start-dwarf", East: "tile1A-3-2", South: "tile1A-2-3", West: "tile1A-start-barbarian" } },
-      { localCellId: "tile1A-3-2", localX: 3, localY: 2, type: CellType.Exploration, walls: [Direction.North, Direction.South, Direction.West], neighborLocalCellIds: { North: "tile1A-3-1", South: "tile1A-3-3", West: "tile1A-start-elf" }, explorationForHeroType: HeroType.Elf, explorationDirection: Direction.East, escalatorGroupId: "tile1A-escalator-a" },
-      { localCellId: "tile1A-0-3", localX: 0, localY: 3, type: CellType.Vortex, walls: [Direction.North], neighborLocalCellIds: { North: "tile1A-0-2", East: "tile1A-1-3" }, vortexForHeroType: HeroType.Elf },
-      { localCellId: "tile1A-1-3", localX: 1, localY: 3, type: CellType.Exploration, walls: [], neighborLocalCellIds: { North: "tile1A-start-barbarian", East: "tile1A-2-3", West: "tile1A-0-3" }, explorationForHeroType: HeroType.Dwarf, explorationDirection: Direction.South },
-      { localCellId: "tile1A-2-3", localX: 2, localY: 3, type: CellType.Exit, walls: [Direction.East, Direction.South], neighborLocalCellIds: { North: "tile1A-start-elf", East: "tile1A-3-3", West: "tile1A-1-3" }, exitForHeroType: HeroType.Mage, escalatorGroupId: "tile1A-escalator-a" },
-      { localCellId: "tile1A-3-3", localX: 3, localY: 3, type: CellType.Normal, walls: [Direction.North, Direction.East, Direction.West], neighborLocalCellIds: { North: "tile1A-3-2", West: "tile1A-2-3" } },
-    ],
+    cells: createReferenceCells("tile1A", ENCODED_REFERENCE_TILES["0"], {
+      "1,1": "tile1A-start-mage",
+      "2,1": "tile1A-start-dwarf",
+      "1,2": "tile1A-start-barbarian",
+      "2,2": "tile1A-start-elf",
+    }),
   },
   tile1B: {
     tileId: "tile1B",
     imageKey: "tile1.jpg",
-    metadataStatus: "placeholder",
-    notes: ["Starting tile B-side placeholder. Kept intentionally different from tile1A until exact tile1.jpg mapping is verified."],
+    metadataStatus: "verified",
+    notes: ["Generated from the original reference tiles.json metadata."],
     entryPoints: [],
-    cells: [
-      { localCellId: "tile1B-0-0", localX: 0, localY: 0, type: CellType.SandTimer, walls: [], neighborLocalCellIds: { East: "tile1B-1-0", South: "tile1B-0-1" } },
-      { localCellId: "tile1B-1-0", localX: 1, localY: 0, type: CellType.Item, walls: [], neighborLocalCellIds: { West: "tile1B-0-0", East: "tile1B-2-0" }, itemForHeroType: HeroType.Mage },
-      { localCellId: "tile1B-2-0", localX: 2, localY: 0, type: CellType.Exploration, walls: [], neighborLocalCellIds: { West: "tile1B-1-0", East: "tile1B-3-0" }, explorationForHeroType: HeroType.Elf, explorationDirection: Direction.North },
-      { localCellId: "tile1B-3-0", localX: 3, localY: 0, type: CellType.Exit, walls: [], neighborLocalCellIds: { West: "tile1B-2-0", South: "tile1B-3-1" }, exitForHeroType: HeroType.Mage },
-      { localCellId: "tile1B-0-1", localX: 0, localY: 1, type: CellType.Item, walls: [], neighborLocalCellIds: { North: "tile1B-0-0", South: "tile1B-0-2" }, itemForHeroType: HeroType.Elf },
-      { localCellId: "tile1B-3-1", localX: 3, localY: 1, type: CellType.Vortex, walls: [], neighborLocalCellIds: { North: "tile1B-3-0", South: "tile1B-3-2" }, vortexForHeroType: HeroType.Barbarian },
-      { localCellId: "tile1B-0-2", localX: 0, localY: 2, type: CellType.Item, walls: [], neighborLocalCellIds: { North: "tile1B-0-1", East: "tile1B-1-2", South: "tile1B-0-3" }, itemForHeroType: HeroType.Dwarf },
-      { localCellId: "tile1B-1-2", localX: 1, localY: 2, type: CellType.Normal, walls: [], neighborLocalCellIds: { West: "tile1B-0-2", East: "tile1B-2-2" } },
-      { localCellId: "tile1B-2-2", localX: 2, localY: 2, type: CellType.Item, walls: [], neighborLocalCellIds: { West: "tile1B-1-2", East: "tile1B-3-2" }, itemForHeroType: HeroType.Barbarian },
-      { localCellId: "tile1B-3-2", localX: 3, localY: 2, type: CellType.Exploration, walls: [], neighborLocalCellIds: { North: "tile1B-3-1", West: "tile1B-2-2", South: "tile1B-3-3" }, explorationForHeroType: HeroType.Elf, explorationDirection: Direction.East },
-      { localCellId: "tile1B-0-3", localX: 0, localY: 3, type: CellType.Loudspeaker, walls: [], neighborLocalCellIds: { North: "tile1B-0-2", East: "tile1B-1-3" } },
-      { localCellId: "tile1B-1-3", localX: 1, localY: 3, type: CellType.Normal, walls: [], neighborLocalCellIds: { West: "tile1B-0-3", East: "tile1B-2-3" } },
-      { localCellId: "tile1B-2-3", localX: 2, localY: 3, type: CellType.Normal, walls: [], neighborLocalCellIds: { West: "tile1B-1-3", East: "tile1B-3-3" } },
-      { localCellId: "tile1B-3-3", localX: 3, localY: 3, type: CellType.Exploration, walls: [], neighborLocalCellIds: { North: "tile1B-3-2", West: "tile1B-2-3" }, explorationForHeroType: HeroType.Mage, explorationDirection: Direction.South },
-    ],
+    cells: createReferenceCells("tile1B", ENCODED_REFERENCE_TILES["1"]),
   },
   tile2: {
     tileId: "tile2",
@@ -467,7 +447,7 @@ export const MALL_TILES: Record<string, MallTileDefinition> = {
     }),
   },
   ...Object.fromEntries(
-    Array.from({ length: 18 }, (_, index) => {
+    Array.from({ length: 23 }, (_, index) => {
       const tileNumber = index + 2;
       const tile = createReferenceTile(tileNumber);
       return [tile.tileId, tile];

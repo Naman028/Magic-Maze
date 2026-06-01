@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCENARIOS } from "../data/scenarios.js";
 import { CellType, GameStatus, HeroType } from "../game/gameTypes.js";
 import { applyEscapeIfOnExit } from "../rules/escapeRules.js";
-import { createStartedRoom, placeHero } from "./testHelpers.js";
+import { createStartedRoom, placeHero, upsertTestCell } from "./testHelpers.js";
 
 describe("scenario escape rules", () => {
   it("Scenario 1 allows a hero with an item to escape through the purple Mage exit", () => {
@@ -10,7 +10,17 @@ describe("scenario escape rules", () => {
     const barbarian = room.session.heroes.find((hero) => hero.heroId === "hero-barbarian");
     if (!barbarian) throw new Error("missing barbarian");
     barbarian.hasItem = true;
-    placeHero(room, "hero-barbarian", "tile1A-2-3");
+    upsertTestCell(room, {
+      cellId: "test-exit-mage",
+      tileId: "test",
+      x: 50,
+      y: 50,
+      type: CellType.Exit,
+      walls: [],
+      neighborCellIds: {},
+      exitForHeroType: HeroType.Mage,
+    });
+    placeHero(room, "hero-barbarian", "test-exit-mage");
 
     expect(applyEscapeIfOnExit(room.session, "hero-barbarian")).toBe(true);
     expect(barbarian.hasEscaped).toBe(true);
@@ -23,7 +33,17 @@ describe("scenario escape rules", () => {
     const barbarian = room.session.heroes.find((hero) => hero.heroId === "hero-barbarian");
     if (!barbarian) throw new Error("missing barbarian");
     barbarian.hasItem = true;
-    placeHero(room, "hero-barbarian", "tile1A-2-3");
+    upsertTestCell(room, {
+      cellId: "test-exit-mage",
+      tileId: "test",
+      x: 50,
+      y: 50,
+      type: CellType.Exit,
+      walls: [],
+      neighborCellIds: {},
+      exitForHeroType: HeroType.Mage,
+    });
+    placeHero(room, "hero-barbarian", "test-exit-mage");
 
     expect(applyEscapeIfOnExit(room.session, "hero-barbarian")).toBe(false);
     expect(barbarian.hasEscaped).toBe(false);
