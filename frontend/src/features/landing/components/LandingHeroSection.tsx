@@ -10,7 +10,7 @@ export function LandingHeroSection() {
       <div className="hero-title">
         <p>MAGIC MAZE ONLINE</p>
         <h1>ENTER <span>THE</span> MAZE</h1>
-        <h2>A cooperative real-time strategy board game. Create a room, share the code, and play.</h2>
+        <h2>Create a room, share the code, and escape together.</h2>
       </div>
       <div className="hero-showcase character-showcase" aria-hidden>
         <div className="hourglass-figure">⌛</div>

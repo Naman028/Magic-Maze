@@ -27,7 +27,22 @@ export function ActionPanel({ session, playerId }: { session: GameSession; playe
     : undefined;
   const availableMoveDirections = orderedDirections.filter((direction) => actions.includes(directionActionByDirection[direction]));
   const directionsWithLegalTargets = new Set(legalMoveTargets.map((target) => target.direction));
-  const eligibleExplore = getEligibleExplore(session);
+  const selectedExplore =
+    selectedHero &&
+    selectedCell?.type === "Exploration" &&
+    !selectedCell.explorationUsed &&
+    selectedCell.explorationForHeroType === selectedHero.heroType &&
+    !selectedHero.hasEscaped
+      ? { hero: selectedHero, cell: selectedCell }
+      : undefined;
+  const eligibleExplore = selectedExplore ?? getEligibleExplore(session);
+  const searchDisabledCaption = !selectedHero
+    ? "Select hero"
+    : selectedCell?.type === "Exploration" && selectedCell.explorationForHeroType !== selectedHero.heroType
+      ? "Wrong hero"
+      : selectedCell?.type === "Exploration" && selectedCell.explorationUsed
+        ? "Already used"
+        : "Need search";
   const nextTileId = session.tileDeck.remainingTileIds[0];
   const currentCard = player?.assignedActionCard;
   const vortexBlocked = session.status === "Escape" || session.heroes.some((hero) => hero.hasItem);
@@ -73,7 +88,7 @@ export function ActionPanel({ session, playerId }: { session: GameSession; playe
           <button className="action-card-button disabled-action" disabled title="Move a hero onto a matching unexplored search space first.">
             <img src={getActionAbilityImage("ExploreTile")} alt="" />
             <span>Search</span>
-            <small>Need hero</small>
+            <small>{searchDisabledCaption}</small>
           </button>
         )}
 
