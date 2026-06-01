@@ -11,7 +11,10 @@ import { MazeTile } from "./MazeTile";
 import { calculateBoardGeometry, cellToScreen, tileToScreen } from "../utils/boardGeometry";
 import { GuardPawn } from "./GuardPawn";
 import { useResponsiveTileSize } from "../hooks/useResponsiveTileSize";
-import { hasSearchArrowConflict, placementFromExploration } from "../utils/explorationPlacement";
+import { placementFromExploration } from "../utils/explorationPlacement";
+
+const MIN_BOARD_ZOOM = 0.55;
+const MAX_BOARD_ZOOM = 1.8;
 
 export function MazeBoard({ session }: { session: GameSession }) {
   const {
@@ -31,11 +34,12 @@ export function MazeBoard({ session }: { session: GameSession }) {
   } = useGameStore();
   const [hoveredCellId, setHoveredCellId] = useState<string | undefined>();
   const [isPanning, setIsPanning] = useState(false);
-  const [zoom, setZoom] = useState(0.82);
+  const [zoom, setZoom] = useState(1.18);
   const scrollRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const panStartRef = useRef<{ x: number; y: number; scrollLeft: number; scrollTop: number; pointerId: number } | undefined>();
   const lastCenteredSignatureRef = useRef<string | undefined>();
+  const userMovedCameraRef = useRef(false);
   const baseTileSize = useResponsiveTileSize();
   const tileSize = baseTileSize * zoom;
   const cells = Object.values(session.board.cells);
@@ -77,6 +81,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
   const nextTileId = session.tileDeck.remainingTileIds[0];
   const nextTileImageKey = nextTileId ? `${nextTileId.replace("tile1A", "tile0").replace("tile1B", "tile1")}.jpg` : undefined;
   const geometry = calculateBoardGeometry(session, tileSize);
+  const showCameraControls = !session.result;
   const boardStyle = {
     width: geometry.width,
     height: geometry.height,
@@ -104,18 +109,20 @@ export function MazeBoard({ session }: { session: GameSession }) {
         );
       })
     : false;
-  const pendingSearchArrowConflict =
-    pendingTilePlacement && pendingExplorationCell
-      ? hasSearchArrowConflict(session, pendingExplorationCell, nextTileId, pendingTilePlacement.boardX, pendingTilePlacement.boardY, pendingTilePlacement.rotation)
-      : false;
   const pendingTileIsValid = Boolean(
     pendingTilePlacement &&
       pendingExpectedPlacement &&
       pendingTilePlacement.boardX === pendingExpectedPlacement.boardX &&
       pendingTilePlacement.boardY === pendingExpectedPlacement.boardY &&
-      !pendingOverlaps &&
-      !pendingSearchArrowConflict,
+      !pendingOverlaps,
   );
+  const pendingInvalidReason = !pendingTilePlacement
+    ? undefined
+    : !pendingExpectedPlacement || pendingTilePlacement.boardX !== pendingExpectedPlacement.boardX || pendingTilePlacement.boardY !== pendingExpectedPlacement.boardY
+      ? "Wrong entry"
+      : pendingOverlaps
+        ? "Overlaps tile"
+        : undefined;
   const directionToCell = (heroId: string, cellId: string) => {
     if (heroId !== selectedHeroId) return undefined;
     const direction = legalMoveTargets.find((target) => target.cellId === cellId)?.direction;
@@ -126,10 +133,37 @@ export function MazeBoard({ session }: { session: GameSession }) {
     setSelectedHeroId(heroId);
   };
   const panBoard = (dx: number, dy: number) => {
+    userMovedCameraRef.current = true;
     scrollRef.current?.scrollBy({ left: dx, top: dy, behavior: "smooth" });
   };
+  const applyZoom = (nextZoom: number) => {
+    userMovedCameraRef.current = true;
+    const scrollElement = scrollRef.current;
+    const boardElement = boardRef.current;
+    const normalizedZoom = Math.min(MAX_BOARD_ZOOM, Math.max(MIN_BOARD_ZOOM, Number(nextZoom.toFixed(2))));
+
+    if (!scrollElement || !boardElement) {
+      setZoom(normalizedZoom);
+      return;
+    }
+
+    const centerX = (scrollElement.scrollLeft + scrollElement.clientWidth / 2 - boardElement.offsetLeft) / zoom;
+    const centerY = (scrollElement.scrollTop + scrollElement.clientHeight / 2 - boardElement.offsetTop) / zoom;
+
+    setZoom(normalizedZoom);
+    requestAnimationFrame(() => {
+      const nextBoardElement = boardRef.current;
+      const nextScrollElement = scrollRef.current;
+      if (!nextBoardElement || !nextScrollElement) return;
+      nextScrollElement.scrollTo({
+        left: Math.max(0, nextBoardElement.offsetLeft + centerX * normalizedZoom - nextScrollElement.clientWidth / 2),
+        top: Math.max(0, nextBoardElement.offsetTop + centerY * normalizedZoom - nextScrollElement.clientHeight / 2),
+        behavior: "smooth",
+      });
+    });
+  };
   const changeZoom = (delta: number) => {
-    setZoom((current) => Math.min(1.8, Math.max(0.55, Number((current + delta).toFixed(2)))));
+    applyZoom(zoom + delta);
   };
   const rotatePendingTile = () => {
     if (!pendingTilePlacement) return;
@@ -157,7 +191,25 @@ export function MazeBoard({ session }: { session: GameSession }) {
     const placement = placementFromExploration(session, pendingExplorationCell, nextTileId, pendingTilePlacement.rotation);
     updatePendingTilePlacement(placement);
   };
+  const centerPlacedTiles = (behavior: ScrollBehavior = "smooth") => {
+    const scrollElement = scrollRef.current;
+    const boardElement = boardRef.current;
+    if (!scrollElement || !boardElement || session.placedTiles.length === 0) return;
 
+    const tileRects = session.placedTiles.map((tile) => tileToScreen(tile, geometry));
+    const leftEdge = Math.min(...tileRects.map((rect) => rect.left));
+    const rightEdge = Math.max(...tileRects.map((rect) => rect.left + rect.width));
+    const topEdge = Math.min(...tileRects.map((rect) => rect.top));
+    const bottomEdge = Math.max(...tileRects.map((rect) => rect.top + rect.height));
+    const left = boardElement.offsetLeft + (leftEdge + rightEdge) / 2 - scrollElement.clientWidth / 2;
+    const top = boardElement.offsetTop + (topEdge + bottomEdge) / 2 - scrollElement.clientHeight / 2;
+
+    scrollElement.scrollTo({ left: Math.max(0, left), top: Math.max(0, top), behavior });
+  };
+  const centerCameraOnPlacedTiles = (behavior: ScrollBehavior = "smooth") => {
+    userMovedCameraRef.current = false;
+    centerPlacedTiles(behavior);
+  };
   useEffect(() => {
     if (!selectedHeroId || !["InProgress", "Escape"].includes(session.status)) return;
     emitters.legalMoves(selectedHeroId);
@@ -189,21 +241,15 @@ export function MazeBoard({ session }: { session: GameSession }) {
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
-    const boardElement = boardRef.current;
-    if (!scrollElement || !boardElement || session.placedTiles.length === 0) return;
+    if (!scrollElement || session.placedTiles.length === 0) return;
     if (pendingTilePlacement) return;
+    if (userMovedCameraRef.current) return;
     if (lastCenteredSignatureRef.current === placedTileSignature) return;
     lastCenteredSignatureRef.current = placedTileSignature;
 
-    const tileRects = session.placedTiles.map((tile) => tileToScreen(tile, geometry));
-    const leftEdge = Math.min(...tileRects.map((rect) => rect.left));
-    const rightEdge = Math.max(...tileRects.map((rect) => rect.left + rect.width));
-    const topEdge = Math.min(...tileRects.map((rect) => rect.top));
-    const bottomEdge = Math.max(...tileRects.map((rect) => rect.top + rect.height));
-    const left = boardElement.offsetLeft + (leftEdge + rightEdge) / 2 - scrollElement.clientWidth / 2;
-    const top = boardElement.offsetTop + (topEdge + bottomEdge) / 2 - scrollElement.clientHeight / 2;
     requestAnimationFrame(() => {
-      scrollElement.scrollTo({ left: Math.max(0, left), top: Math.max(0, top), behavior: "auto" });
+      centerPlacedTiles("auto");
+      requestAnimationFrame(() => centerPlacedTiles("auto"));
     });
   }, [geometry, pendingTilePlacement, placedTileSignature, session.placedTiles]);
 
@@ -247,6 +293,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
   }, [pendingTilePlacement]);
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+    userMovedCameraRef.current = true;
     if (!event.ctrlKey) return;
     event.preventDefault();
     changeZoom(event.deltaY < 0 ? 0.08 : -0.08);
@@ -254,9 +301,10 @@ export function MazeBoard({ session }: { session: GameSession }) {
   const beginPan = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement;
-    if (target.closest("button,[data-cell-id],.hero-token,.pending-tile-placement,.board-camera-controls")) return;
+    if (target.closest("button,input,[data-cell-id],.hero-token,.pending-tile-placement,.board-zoom-buttons,.board-zoom-slider,.board-pan-controls")) return;
     const scrollElement = scrollRef.current;
     if (!scrollElement) return;
+    userMovedCameraRef.current = true;
 
     panStartRef.current = {
       x: event.clientX,
@@ -272,6 +320,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
     const start = panStartRef.current;
     const scrollElement = scrollRef.current;
     if (!start || !scrollElement || start.pointerId !== event.pointerId) return;
+    userMovedCameraRef.current = true;
     scrollElement.scrollLeft = start.scrollLeft - (event.clientX - start.x);
     scrollElement.scrollTop = start.scrollTop - (event.clientY - start.y);
   };
@@ -287,7 +336,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
   const snapPendingTileToPointer = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (!pendingTilePlacement || !boardRef.current) return;
     const target = event.target as HTMLElement;
-    if (target.closest("button,[data-cell-id],.hero-token,.pending-tile-placement,.board-camera-controls")) return;
+    if (target.closest("button,input,[data-cell-id],.hero-token,.pending-tile-placement,.board-zoom-buttons,.board-zoom-slider,.board-pan-controls")) return;
 
     const boardRect = boardRef.current.getBoundingClientRect();
     const cellX = Math.floor((event.clientX - boardRect.left - geometry.offsetX) / geometry.cellSize);
@@ -300,6 +349,31 @@ export function MazeBoard({ session }: { session: GameSession }) {
 
   return (
     <div className="maze-board-shell">
+      {showCameraControls && (
+        <div className="board-camera-dock" aria-label="Board camera controls">
+          <div className="board-zoom-slider" aria-label="Board zoom level">
+            <button type="button" onClick={() => changeZoom(0.12)} title="Zoom in">+</button>
+            <input
+              type="range"
+              min="55"
+              max="180"
+              value={Math.round(zoom * 100)}
+              onChange={(event) => applyZoom(Number(event.currentTarget.value) / 100)}
+              aria-label="Zoom board"
+            />
+            <button type="button" onClick={() => changeZoom(-0.12)} title="Zoom out">-</button>
+          </div>
+          <div className="board-pan-controls" aria-label="Board pan controls">
+            <div className="board-pan-pad">
+              <button type="button" className="pan-up" onClick={() => panBoard(0, -180)} title="Move up">^</button>
+              <button type="button" className="pan-left" onClick={() => panBoard(-180, 0)} title="Move left">&lt;</button>
+              <button type="button" className="pan-center" onClick={() => centerCameraOnPlacedTiles()} title="Center view">+</button>
+              <button type="button" className="pan-right" onClick={() => panBoard(180, 0)} title="Move right">&gt;</button>
+              <button type="button" className="pan-down" onClick={() => panBoard(0, 180)} title="Move down">v</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`maze-scroll ${isPanning ? "is-panning" : ""}`}
         ref={scrollRef}
@@ -321,6 +395,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
               rotation={pendingTilePlacement.rotation}
               geometry={geometry}
               valid={pendingTileIsValid}
+              invalidReason={pendingInvalidReason}
               onRotate={rotatePendingTile}
               onPlace={placePendingTile}
               onReset={resetPendingTilePlacement}
@@ -382,17 +457,6 @@ export function MazeBoard({ session }: { session: GameSession }) {
           ))}
         </div>
       </div>
-      <div className="board-camera-controls" aria-label="Board view controls">
-        <button type="button" onClick={() => changeZoom(0.12)} title="Zoom in">+</button>
-        <button type="button" onClick={() => changeZoom(-0.12)} title="Zoom out">-</button>
-        <button type="button" onClick={() => setZoom(1)} title="Reset zoom">1:1</button>
-        <div className="board-pan-pad">
-          <button type="button" className="pan-up" onClick={() => panBoard(0, -180)} title="Move up">^</button>
-          <button type="button" className="pan-left" onClick={() => panBoard(-180, 0)} title="Move left">&lt;</button>
-          <button type="button" className="pan-right" onClick={() => panBoard(180, 0)} title="Move right">&gt;</button>
-          <button type="button" className="pan-down" onClick={() => panBoard(0, 180)} title="Move down">v</button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -424,6 +488,7 @@ function PendingTilePreview({
   rotation,
   geometry,
   valid,
+  invalidReason,
   onRotate,
   onPlace,
   onReset,
@@ -435,6 +500,7 @@ function PendingTilePreview({
   rotation: 0 | 90 | 180 | 270;
   geometry: ReturnType<typeof calculateBoardGeometry>;
   valid: boolean;
+  invalidReason?: string;
   onRotate: () => void;
   onPlace: () => void;
   onReset: () => void;
@@ -451,7 +517,7 @@ function PendingTilePreview({
         event.preventDefault();
         onReset();
       }}
-      title={valid ? "Click or press P to place. Press R to rotate and C to cancel." : "Invalid placement. Press Ctrl+Z or Ctrl+, to reset."}
+      title={valid ? "Click or press P to place. Press R to rotate and C to cancel." : `${invalidReason ?? "Invalid"} placement. Press Ctrl+Z or Ctrl+, to reset.`}
       style={{
         left: pos.left,
         top: pos.top,
@@ -461,7 +527,7 @@ function PendingTilePreview({
     >
       <img src={getMazeTileImage(imageKey)} alt={tileId} style={{ transform: `rotate(${rotation}deg)` }} />
       <span className="pending-tile-hint">
-        {valid ? "Click/P place | R rotate | C cancel" : "Invalid | Ctrl+Z or Ctrl+, reset"}
+        {valid ? "Click/P place | R rotate | C cancel" : `${invalidReason ?? "Invalid"} | Ctrl+Z or Ctrl+, reset`}
       </span>
     </button>
   );
