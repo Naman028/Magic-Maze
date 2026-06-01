@@ -72,3 +72,5 @@ logs/
 *.tar.gz
 *.7z
 *.rar
+
+frontend/tsconfig.tsbuildinfo
