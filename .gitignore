@@ -4,6 +4,7 @@ Thumbs.db
 desktop.ini
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 
@@ -46,12 +47,12 @@ pnpm-debug.log*
 .npm-cache/
 
 # ML datasets, generated models, and run artifacts
-datasets/
-dataset/
-data/
-runs/
-outputs/
-checkpoints/
+/datasets/
+/dataset/
+/data/
+/runs/
+/outputs/
+/checkpoints/
 *.pt
 *.pth
 *.onnx
@@ -71,3 +72,5 @@ logs/
 *.tar.gz
 *.7z
 *.rar
+
+frontend/tsconfig.tsbuildinfo
