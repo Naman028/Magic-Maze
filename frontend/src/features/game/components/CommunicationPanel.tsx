@@ -13,11 +13,13 @@ export function CommunicationPanel({ communication, players, playerId }: { commu
   };
 
   return (
-    <section className={`communication-panel ${communication.voiceAllowed ? "voice-on" : "voice-off"}`}>
-      <span>{communication.voiceAllowed ? "VOICE ON" : "VOICE OFF"}</span>
-      <div>
-        <strong>{communication.voiceAllowed ? "Now you can talk" : "Now you cannot talk"}</strong>
-      </div>
+    <>
+      <section className={`communication-panel ${communication.voiceAllowed ? "voice-on" : "voice-off"}`}>
+        <span>{communication.voiceAllowed ? "VOICE ON" : "VOICE OFF"}</span>
+        <div>
+          <strong>{communication.voiceAllowed ? "Now you can talk" : "Now you cannot talk"}</strong>
+        </div>
+      </section>
       <div className="do-something-control">
         <button className="signal-button do-something-button" onClick={() => setTargetMenuOpen((open) => !open)} title="Give Do Something to another player">
           <img
@@ -44,6 +46,6 @@ export function CommunicationPanel({ communication, players, playerId }: { commu
           </div>
         )}
       </div>
-    </section>
+    </>
   );
 }

@@ -32,6 +32,10 @@ function getActionTileAsset(fileName: string) {
   return `/assets/magic-maze/Action tile/${fileName}`;
 }
 
+export function getMagicMazeLogoImage() {
+  return "/assets/magic-maze/logo.png";
+}
+
 export function getMazeTileImage(imageKey?: string) {
   return imageKey ? `/assets/magic-maze/Maze%20layout/${imageKey}` : "";
 }
