@@ -1,7 +1,7 @@
 import { ActionType, Direction, GameSession } from "@/domain/game.types";
 import { useGameStore } from "@/app/stores/useGameStore";
 import { emitters } from "@/services/socket/socketEmitters";
-import { getActionAbilityImage, getActionCardImage, getActionDeckImage, getMazeDeckImage, getTheftObjectiveImage } from "@/shared/utils/assetPaths";
+import { getActionAbilityImage, getActionCardImage, getActionDeckImage, getTheftObjectiveImage } from "@/shared/utils/assetPaths";
 import { getCellById, getEscalatorGroupId } from "../utils/boardRules";
 import { bestPlacementFromExploration, getEligibleExplore, isSoloPlayer } from "../utils/explorationPlacement";
 
@@ -154,15 +154,9 @@ export function ActionPanel({ session, playerId }: { session: GameSession; playe
 function SoloDeck({ currentCard }: { currentCard?: { imageKey?: string; label: string } }) {
   return (
     <div className="solo-deck-track" aria-label="Solo action deck">
-      <DeckSlot label="Draw" image={getActionDeckImage()} />
+      <DeckSlot label="Action deck" image={getActionDeckImage()} muted />
       <span className="deck-arrow">-&gt;</span>
-      <DeckSlot label="Current" image={getActionCardImage(currentCard?.imageKey)} title={currentCard?.label} active />
-      <span className="deck-arrow">-&gt;</span>
-      <DeckSlot label="Discard" image={getActionDeckImage()} muted />
-      <div className="maze-deck-chip">
-        <img src={getMazeDeckImage()} alt="" />
-        <span>Maze deck</span>
-      </div>
+      <DeckSlot label="Your card" image={getActionCardImage(currentCard?.imageKey)} title={currentCard?.label} active />
     </div>
   );
 }

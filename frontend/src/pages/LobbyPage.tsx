@@ -41,7 +41,7 @@ export function LobbyPage() {
 
   return (
     <div className="app-shell lv2-shell">
-      <LobbyHeader session={session} />
+      <LobbyHeader session={session} onHome={() => navigate("/")} />
 
       <main className="lv2-grid">
         {/* ── Left column: Room Code + Rules Preview ── */}

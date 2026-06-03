@@ -1,8 +1,9 @@
 import { GameSession } from "@/domain/game.types";
+import { getMagicMazeLogoImage } from "@/shared/utils/assetPaths";
 
-interface Props { session: GameSession; }
+interface Props { session: GameSession; onHome?: () => void; }
 
-export function LobbyHeader({ session }: Props) {
+export function LobbyHeader({ session, onHome }: Props) {
   return (
     <header style={{
       display: "flex",
@@ -15,18 +16,7 @@ export function LobbyHeader({ session }: Props) {
       borderBottom: "1px solid rgba(174,130,52,0.38)",
       boxShadow: "0 1px 0 rgba(242,193,78,0.06)",
     }}>
-      {/* Brand mark */}
-      <div style={{
-        fontFamily: "Georgia, 'Palatino Linotype', serif",
-        lineHeight: 0.82,
-        textAlign: "center",
-        textShadow: "0 0 14px rgba(196,137,255,0.4)",
-        flexShrink: 0,
-      }}>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "#f5e3b8", letterSpacing: "0.08em" }}>MAGIC</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#f2c14e", letterSpacing: "-0.01em" }}>MAZE</div>
-        <div style={{ fontSize: 9, color: "#a89e94", letterSpacing: "0.14em", marginTop: 4 }}>ONLINE</div>
-      </div>
+      <img className="brand-logo brand-logo-lobby" src={getMagicMazeLogoImage()} alt="Magic Maze Online" />
 
       {/* Gold vertical divider */}
       <div style={{
@@ -64,17 +54,22 @@ export function LobbyHeader({ session }: Props) {
         </div>
       </div>
 
-      {/* Status breadcrumb */}
       <div style={{
         display: "flex",
         alignItems: "center",
-        gap: 6,
+        gap: 10,
         flexShrink: 0,
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
         fontSize: 13,
         color: "#a89e94",
       }}>
-        <span>Lobby</span>
+        {onHome && (
+          <button type="button" className="lobby-home-button" onClick={onHome} aria-label="Back to home">
+            <HomeIcon />
+            <span>Home</span>
+          </button>
+        )}
+        <span style={{ marginLeft: onHome ? 6 : 0 }}>Lobby</span>
         <span style={{ color: "rgba(143,106,47,0.5)" }}>/</span>
         <span style={{
           display: "flex",
@@ -94,5 +89,15 @@ export function LobbyHeader({ session }: Props) {
         </span>
       </div>
     </header>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5 12 3l9 7.5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 10v10h14V10" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20v-6h6v6" />
+    </svg>
   );
 }

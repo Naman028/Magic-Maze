@@ -53,8 +53,10 @@ export function GamePage() {
           <div className="board-stage">
             <MazeBoard session={session} />
           </div>
-          <HeroSelector session={session} />
-          <ActionPanel session={session} playerId={playerId} />
+          <div className="action-dock">
+            <HeroSelector session={session} />
+            <ActionPanel session={session} playerId={playerId} />
+          </div>
         </BoardArea>
         <aside className="right-column">
           <div className="board-side-stack">
