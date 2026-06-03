@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ACTION_CARDS } from "../data/actionCards.js";
 import { ActionType, Direction } from "../game/gameTypes.js";
 import { createRoomService, createStartedRoom, givePlayerAction } from "./testHelpers.js";
 
@@ -32,7 +33,17 @@ describe("action rules", () => {
     expect(room.session.players[0].assignedActionCard?.actions).toContain(ActionType.ExploreTile);
   });
 
-  it.each([2, 3, 4])("%i players together cover core MVP actions", (playerCount) => {
+  it.each([2, 3, 4])("%i players receive uploaded action-card images", (playerCount) => {
+    const realCardImageKeys = new Set(ACTION_CARDS.map((card) => card.imageKey));
+    const { room } = createStartedRoom(playerCount);
+
+    room.session.players.forEach((player) => {
+      expect(player.assignedActionCard).toBeDefined();
+      expect(realCardImageKeys.has(player.assignedActionCard?.imageKey ?? "")).toBe(true);
+    });
+  });
+
+  it.each([3, 4])("%i players together cover core MVP actions", (playerCount) => {
     const { room } = createStartedRoom(playerCount);
     const assigned = new Set(room.session.players.flatMap((player) => player.assignedActionCard?.actions ?? []));
 

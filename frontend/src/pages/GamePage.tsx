@@ -44,11 +44,11 @@ export function GamePage() {
       <GameTopBar session={session} />
       {lastError && <div className="toast-error">{lastError}</div>}
       <main className={`game-grid ${isSolo ? "solo-game-grid" : "multiplayer-game-grid"}`}>
-        <PlayerSidePanel session={session} playerId={playerId} side="left" />
+        <PlayerSidePanel session={session} playerId={playerId} side="all" />
         <BoardArea>
           <div className="timer-row">
             <TimerPanel sandTimer={session.sandTimer} />
-            <CommunicationPanel communication={session.communicationState} />
+            <CommunicationPanel communication={session.communicationState} players={session.players} playerId={playerId} />
           </div>
           <div className="board-stage">
             <MazeBoard session={session} />
@@ -57,7 +57,6 @@ export function GamePage() {
           <ActionPanel session={session} playerId={playerId} />
         </BoardArea>
         <aside className="right-column">
-          <PlayerSidePanel session={session} playerId={playerId} side="right" />
           <div className="board-side-stack">
             <TheftPanel session={session} />
             <OutOfOrderPanel session={session} />

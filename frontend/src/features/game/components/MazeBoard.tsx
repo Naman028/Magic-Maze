@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent } from "react";
 import { Direction, GameSession, MazeCell } from "@/domain/game.types";
 import { useGameStore } from "@/app/stores/useGameStore";
@@ -38,6 +38,8 @@ export function MazeBoard({ session }: { session: GameSession }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const panStartRef = useRef<{ x: number; y: number; scrollLeft: number; scrollTop: number; pointerId: number } | undefined>();
+  const zoomAnchorRef = useRef<{ xRatio: number; yRatio: number } | undefined>();
+  const zoomShouldCenterPlacedTilesRef = useRef(false);
   const lastCenteredSignatureRef = useRef<string | undefined>();
   const userMovedCameraRef = useRef(false);
   const baseTileSize = useResponsiveTileSize();
@@ -137,30 +139,30 @@ export function MazeBoard({ session }: { session: GameSession }) {
     scrollRef.current?.scrollBy({ left: dx, top: dy, behavior: "smooth" });
   };
   const applyZoom = (nextZoom: number) => {
-    userMovedCameraRef.current = true;
     const scrollElement = scrollRef.current;
     const boardElement = boardRef.current;
     const normalizedZoom = Math.min(MAX_BOARD_ZOOM, Math.max(MIN_BOARD_ZOOM, Number(nextZoom.toFixed(2))));
+    if (normalizedZoom === zoom) return;
 
     if (!scrollElement || !boardElement) {
+      zoomShouldCenterPlacedTilesRef.current = !userMovedCameraRef.current;
       setZoom(normalizedZoom);
       return;
     }
 
-    const centerX = (scrollElement.scrollLeft + scrollElement.clientWidth / 2 - boardElement.offsetLeft) / zoom;
-    const centerY = (scrollElement.scrollTop + scrollElement.clientHeight / 2 - boardElement.offsetTop) / zoom;
-
+    if (userMovedCameraRef.current) {
+      const centerX = scrollElement.scrollLeft + scrollElement.clientWidth / 2 - boardElement.offsetLeft;
+      const centerY = scrollElement.scrollTop + scrollElement.clientHeight / 2 - boardElement.offsetTop;
+      zoomAnchorRef.current = {
+        xRatio: boardElement.offsetWidth > 0 ? centerX / boardElement.offsetWidth : 0.5,
+        yRatio: boardElement.offsetHeight > 0 ? centerY / boardElement.offsetHeight : 0.5,
+      };
+      zoomShouldCenterPlacedTilesRef.current = false;
+    } else {
+      zoomAnchorRef.current = undefined;
+      zoomShouldCenterPlacedTilesRef.current = true;
+    }
     setZoom(normalizedZoom);
-    requestAnimationFrame(() => {
-      const nextBoardElement = boardRef.current;
-      const nextScrollElement = scrollRef.current;
-      if (!nextBoardElement || !nextScrollElement) return;
-      nextScrollElement.scrollTo({
-        left: Math.max(0, nextBoardElement.offsetLeft + centerX * normalizedZoom - nextScrollElement.clientWidth / 2),
-        top: Math.max(0, nextBoardElement.offsetTop + centerY * normalizedZoom - nextScrollElement.clientHeight / 2),
-        behavior: "smooth",
-      });
-    });
   };
   const changeZoom = (delta: number) => {
     applyZoom(zoom + delta);
@@ -210,6 +212,26 @@ export function MazeBoard({ session }: { session: GameSession }) {
     userMovedCameraRef.current = false;
     centerPlacedTiles(behavior);
   };
+  useLayoutEffect(() => {
+    if (zoomShouldCenterPlacedTilesRef.current) {
+      zoomShouldCenterPlacedTilesRef.current = false;
+      centerPlacedTiles("auto");
+      return;
+    }
+
+    const anchor = zoomAnchorRef.current;
+    const scrollElement = scrollRef.current;
+    const boardElement = boardRef.current;
+    if (!anchor || !scrollElement || !boardElement) return;
+
+    zoomAnchorRef.current = undefined;
+    scrollElement.scrollTo({
+      left: Math.max(0, boardElement.offsetLeft + boardElement.offsetWidth * anchor.xRatio - scrollElement.clientWidth / 2),
+      top: Math.max(0, boardElement.offsetTop + boardElement.offsetHeight * anchor.yRatio - scrollElement.clientHeight / 2),
+      behavior: "auto",
+    });
+  }, [geometry.height, geometry.width, zoom]);
+
   useEffect(() => {
     if (!selectedHeroId || !["InProgress", "Escape"].includes(session.status)) return;
     emitters.legalMoves(selectedHeroId);
@@ -293,8 +315,10 @@ export function MazeBoard({ session }: { session: GameSession }) {
   }, [pendingTilePlacement]);
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    userMovedCameraRef.current = true;
-    if (!event.ctrlKey) return;
+    if (!event.ctrlKey) {
+      userMovedCameraRef.current = true;
+      return;
+    }
     event.preventDefault();
     changeZoom(event.deltaY < 0 ? 0.08 : -0.08);
   };

@@ -29,7 +29,7 @@ export function getActionAbilityImage(actionKey?: string) {
 }
 
 function getActionTileAsset(fileName: string) {
-  return `/assets/magic-maze/Action%20tile/${encodeURIComponent(fileName)}`;
+  return `/assets/magic-maze/Action tile/${fileName}`;
 }
 
 export function getMazeTileImage(imageKey?: string) {

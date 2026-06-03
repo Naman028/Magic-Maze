@@ -1,24 +1,42 @@
 import { HeroType, Player } from "@/domain/game.types";
+import { getDoSomethingImage } from "@/shared/utils/assetPaths";
 import { getHeroDisplayName, getHeroPlayerCardImage } from "../utils/heroVisuals";
 import { ActionCardImage } from "./ActionCardImage";
 
-export function PlayerStatusCard({ player, visualHeroType, isMe }: { player: Player; visualHeroType?: HeroType; isMe: boolean }) {
+export function PlayerStatusCard({
+  player,
+  visualHeroType,
+  isMe,
+  hasDoSomethingSignal,
+}: {
+  player: Player;
+  visualHeroType?: HeroType;
+  isMe: boolean;
+  hasDoSomethingSignal?: boolean;
+}) {
   const heroName = visualHeroType ? getHeroDisplayName(visualHeroType) : "Shared Heroes";
+  const statusLabel = player.isReady ? "Ready" : player.isConnected ? "Connected" : "Disconnected";
 
   return (
     <article className={`player-card ${isMe ? "current-player" : ""}`}>
-      {visualHeroType && <img className="player-card-art" src={getHeroPlayerCardImage(visualHeroType)} alt="" />}
-      <div className="player-head">
-        <div className="avatar">{player.nickname.slice(0, 1).toUpperCase()}</div>
-        <div>
-          <strong>{player.nickname}</strong>
-          <p>{player.isHost ? "Host" : "Player"} · {heroName} {player.isSpectator ? "· Spectator" : ""}</p>
-          <small className={player.isReady ? "ready-text" : "offline-text"}>● {player.isReady ? "Ready" : player.isConnected ? "Connected" : "Disconnected"}</small>
-        </div>
+      {visualHeroType && <img className="player-avatar-art" src={getHeroPlayerCardImage(visualHeroType)} alt="" />}
+      <div className="player-card-info">
+        <strong>{player.nickname}</strong>
+        <p>
+          {player.isHost ? "Host" : "Player"} - {heroName}
+          {player.isSpectator ? " - Spectator" : ""}
+        </p>
+        <small className={player.isReady ? "ready-text" : "offline-text"}>{statusLabel}</small>
       </div>
-      <span className="your-action">{isMe ? "YOUR ACTION" : "ACTION"}</span>
-      <ActionCardImage imageKey={player.assignedActionCard?.imageKey} label={player.assignedActionCard?.label} />
-      <p className="card-label">{player.assignedActionCard?.label ?? "Waiting for start"}</p>
+      <div className="player-card-action-area" aria-label={isMe ? "Your action card" : "Player action card"}>
+        <ActionCardImage imageKey={player.assignedActionCard?.imageKey} label={player.assignedActionCard?.label} fallback="deck" />
+      </div>
+      {hasDoSomethingSignal && (
+        <div className="do-something-marker" title="Do Something">
+          <img src={getDoSomethingImage()} alt="" />
+          <span>Do Something</span>
+        </div>
+      )}
     </article>
   );
 }

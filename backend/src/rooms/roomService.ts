@@ -562,7 +562,7 @@ export class RoomService {
 
   private rotateActionCardsAfterTimerIfNeeded(room: Room): void {
     if (!room.session.scenario.ruleFlags.passActionTilesOnTimerFlip) return;
-    const activePlayers = room.session.players.filter((player) => player.isConnected && !player.isSpectator);
+    const activePlayers = room.session.players.filter((player) => !player.isSpectator);
     const cards = activePlayers.map((player) => player.assignedActionCard);
     activePlayers.forEach((player, index) => {
       player.assignedActionCard = cards[(index + activePlayers.length - 1) % activePlayers.length];

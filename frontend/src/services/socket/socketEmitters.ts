@@ -35,7 +35,8 @@ export const emitters = {
   activateSandTimer: (heroId: string, cellId: string) => emitWithIdentity(ClientEvent.SandTimerActivate, { heroId, cellId }),
   placeTile: (heroId: string, explorationCellId: string, boardX: number, boardY: number, tileId?: string, rotation: 0 | 90 | 180 | 270 = 0) =>
     emitWithIdentity(ClientEvent.ExplorePlaceTile, { heroId, explorationCellId, boardX, boardY, tileId, rotation }),
-  signal: (signalType: "Attention" | "Approve" | "Reject" | "Hurry", heroId?: string) => emitWithIdentity(ClientEvent.SignalSend, { signalType, heroId }),
+  signal: (signalType: "Attention" | "Approve" | "Reject" | "Hurry", heroId?: string, targetPlayerId?: string) =>
+    emitWithIdentity(ClientEvent.SignalSend, { signalType, ...(heroId ? { heroId } : {}), ...(targetPlayerId ? { targetPlayerId } : {}) }),
   playAgain: () => emitWithIdentity(ClientEvent.GamePlayAgain, { keepScenario: true, keepDifficulty: true }),
   returnToLobby: () => emitWithIdentity(ClientEvent.GameReturnToLobby),
   sync: (roomCode: string, playerId: string) => socket.emit(ClientEvent.SyncRequest, { roomCode, playerId }),

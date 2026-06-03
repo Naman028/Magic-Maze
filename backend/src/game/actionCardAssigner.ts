@@ -14,21 +14,24 @@ function shuffled<T>(items: T[]): T[] {
   return copy;
 }
 
-function createMvpCard(actionCardId: string, label: string, actions: ActionType[]) {
-  return { actionCardId, imageKey: `${actionCardId}.png`, actions, label, icons: actions.map((action) => action) };
+function cardById(actionCardId: string): ActionCard {
+  const card = ACTION_CARDS.find((candidate) => candidate.actionCardId === actionCardId);
+  if (!card) {
+    throw new Error(`Missing action card ${actionCardId}.`);
+  }
+  return card;
 }
 
 export function assignActionCards(players: Player[]): void {
-  const activePlayers = players.filter((player) => !player.isSpectator && player.isConnected);
+  const activePlayers = players.filter((player) => !player.isSpectator);
   if (activePlayers.length === 1) {
     activePlayers[0].assignedActionCard = shuffled(SOLO_ACTION_CARDS)[0];
     return;
   }
-  // TODO: Replace MVP balanced assignment with exact official player-count action-tile distribution when the action-card lower-right player-count metadata is mapped.
   if (activePlayers.length === 2) {
     const cards = shuffled([
-      createMvpCard("mvp-2p-1", "North/East + Vortex", [ActionType.MoveNorth, ActionType.MoveEast, ActionType.UseVortex]),
-      createMvpCard("mvp-2p-2", "South/West + Explore/Elevator", [ActionType.MoveSouth, ActionType.MoveWest, ActionType.ExploreTile, ActionType.TakeEscalator]),
+      cardById("action-card-3"),
+      cardById("action-card-7"),
     ]);
     activePlayers.forEach((player, index) => {
       player.assignedActionCard = cards[index];
@@ -37,9 +40,9 @@ export function assignActionCards(players: Player[]): void {
   }
   if (activePlayers.length === 3) {
     const cards = shuffled([
-      createMvpCard("mvp-3p-1", "North/East + Vortex", [ActionType.MoveNorth, ActionType.MoveEast, ActionType.UseVortex]),
-      createMvpCard("mvp-3p-2", "South + Explore", [ActionType.MoveSouth, ActionType.ExploreTile]),
-      createMvpCard("mvp-3p-3", "West + Elevator", [ActionType.MoveWest, ActionType.TakeEscalator]),
+      cardById("action-card-3"),
+      cardById("action-card-7"),
+      cardById("action-card-9"),
     ]);
     activePlayers.forEach((player, index) => {
       player.assignedActionCard = cards[index];
@@ -48,10 +51,10 @@ export function assignActionCards(players: Player[]): void {
   }
   if (activePlayers.length === 4) {
     const cards = shuffled([
-      createMvpCard("mvp-4p-1", "North", [ActionType.MoveNorth]),
-      createMvpCard("mvp-4p-2", "South + Explore", [ActionType.MoveSouth, ActionType.ExploreTile]),
-      createMvpCard("mvp-4p-3", "East + Elevator", [ActionType.MoveEast, ActionType.TakeEscalator]),
-      createMvpCard("mvp-4p-4", "West + Vortex", [ActionType.MoveWest, ActionType.UseVortex]),
+      cardById("action-card-4"),
+      cardById("action-card-7"),
+      cardById("action-card-8"),
+      cardById("action-card-2"),
     ]);
     activePlayers.forEach((player, index) => {
       player.assignedActionCard = cards[index];
@@ -68,7 +71,7 @@ export function assignActionCards(players: Player[]): void {
 }
 
 export function assignNextSoloActionCard(players: Player[], playerId: string, targetAction?: ActionType): ActionCard {
-  const activePlayers = players.filter((player) => !player.isSpectator && player.isConnected);
+  const activePlayers = players.filter((player) => !player.isSpectator);
   if (activePlayers.length !== 1 || activePlayers[0].playerId !== playerId) {
     throw new Error("Solo action cycling is only available in a one-player game.");
   }

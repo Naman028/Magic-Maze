@@ -145,6 +145,6 @@ export function playerCanExplore(session: GameSession, playerId?: string): boole
 }
 
 export function isSoloPlayer(session: GameSession, playerId?: string): boolean {
-  const activePlayers = session.players.filter((candidate) => candidate.isConnected && !candidate.isSpectator);
+  const activePlayers = session.players.filter((candidate) => !candidate.isSpectator);
   return activePlayers.length === 1 && activePlayers[0]?.playerId === playerId;
 }
