@@ -262,7 +262,7 @@ function connectedEscalatorGroups(tileId: string, links: Array<[string, string]>
 
 function createReferenceTile(tileNumber: number): MallTileDefinition {
   const tileId = `tile${tileNumber}`;
-  return applyVisualEscalatorEndpoints({
+  return applyVisualTileOverrides({
     tileId,
     imageKey: `${tileId}.jpg`,
     metadataStatus: "verified",
@@ -274,17 +274,22 @@ function createReferenceTile(tileNumber: number): MallTileDefinition {
 
 const VISUAL_ESCALATOR_ENDPOINTS: Record<string, string[][]> = {
   tile1A: [["tile1A-3-2", "tile1A-2-3"]],
-  tile2: [
-    ["tile2-0-1", "tile2-3-1"],
-    ["tile2-1-0", "tile2-1-3"],
-  ],
+  tile2: [["tile2-0-1", "tile2-1-2"]],
   tile7: [["tile7-2-1", "tile7-1-3"]],
+  tile10: [["tile10-1-2", "tile10-2-1"]],
   tile12: [
-    ["tile12-1-1", "tile12-2-0"],
-    ["tile12-0-3", "tile12-1-2"],
+    ["tile12-1-0", "tile12-2-1"],
+    ["tile12-0-2", "tile12-1-3"],
   ],
-  tile14: [["tile14-0-1", "tile14-2-1"]],
+  tile14: [["tile14-0-1", "tile14-2-2"]],
   tile15: [["tile15-0-1", "tile15-2-1"]],
+  tile20: [["tile20-1-2", "tile20-2-1"]],
+};
+
+const VISUAL_CELL_OVERRIDES: Record<string, Record<string, Partial<TileCellDefinition>>> = {
+  tile20: {
+    "tile20-3-3": { type: CellType.Exit, exitForHeroType: HeroType.Mage },
+  },
 };
 
 export function visualEscalatorGroupId(tileId: string, cellId: string): string | undefined {
@@ -299,26 +304,30 @@ export function hasVisualEscalatorEndpoints(tileId: string): boolean {
   return tileId in VISUAL_ESCALATOR_ENDPOINTS;
 }
 
-function applyVisualEscalatorEndpoints(tile: MallTileDefinition): MallTileDefinition {
+function applyVisualTileOverrides(tile: MallTileDefinition): MallTileDefinition {
   const pairs = VISUAL_ESCALATOR_ENDPOINTS[tile.tileId];
-  if (!pairs) return tile;
+  const cellOverrides = VISUAL_CELL_OVERRIDES[tile.tileId] ?? {};
+  if (!pairs && Object.keys(cellOverrides).length === 0) return tile;
 
-  const endpointIds = new Set(pairs.flat());
+  const endpointIds = new Set((pairs ?? []).flat());
   return {
     ...tile,
     cells: tile.cells.map((cell) => {
+      const visualOverride = cellOverrides[cell.localCellId] ?? {};
       const groupId = visualEscalatorGroupId(tile.tileId, cell.localCellId);
       if (groupId) {
         return {
           ...cell,
           type: cell.type === CellType.Normal ? CellType.Escalator : cell.type,
           escalatorGroupId: groupId,
+          ...visualOverride,
         };
       }
       const { escalatorGroupId, ...rest } = cell;
       return {
         ...rest,
         type: cell.type === CellType.Escalator && !endpointIds.has(cell.localCellId) ? CellType.Normal : cell.type,
+        ...visualOverride,
       };
     }),
   };

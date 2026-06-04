@@ -22,17 +22,16 @@ export function getEscalatorGroupId(cell?: MazeCell) {
 
 const visualEscalatorEndpoints: Record<string, string[][]> = {
   tile1A: [["tile1A-3-2", "tile1A-2-3"]],
-  tile2: [
-    ["tile2-0-1", "tile2-3-1"],
-    ["tile2-1-0", "tile2-1-3"],
-  ],
+  tile2: [["tile2-0-1", "tile2-1-2"]],
   tile7: [["tile7-2-1", "tile7-1-3"]],
+  tile10: [["tile10-1-2", "tile10-2-1"]],
   tile12: [
-    ["tile12-1-1", "tile12-2-0"],
-    ["tile12-0-3", "tile12-1-2"],
+    ["tile12-1-0", "tile12-2-1"],
+    ["tile12-0-2", "tile12-1-3"],
   ],
-  tile14: [["tile14-0-1", "tile14-2-1"]],
+  tile14: [["tile14-0-1", "tile14-2-2"]],
   tile15: [["tile15-0-1", "tile15-2-1"]],
+  tile20: [["tile20-1-2", "tile20-2-1"]],
 };
 
 function visualEscalatorGroupId(tileId: string, cellId: string) {

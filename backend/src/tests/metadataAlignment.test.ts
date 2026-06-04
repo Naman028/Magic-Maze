@@ -57,16 +57,17 @@ describe("metadata alignment", () => {
   it("uses visual stair endpoints for elevator tiles", () => {
     const expected = {
       tile2: [
-        ["tile2-0-1", "tile2-3-1"],
-        ["tile2-1-0", "tile2-1-3"],
+        ["tile2-0-1", "tile2-1-2"],
       ],
       tile7: [["tile7-2-1", "tile7-1-3"]],
+      tile10: [["tile10-1-2", "tile10-2-1"]],
       tile12: [
-        ["tile12-1-1", "tile12-2-0"],
-        ["tile12-0-3", "tile12-1-2"],
+        ["tile12-1-0", "tile12-2-1"],
+        ["tile12-0-2", "tile12-1-3"],
       ],
-      tile14: [["tile14-0-1", "tile14-2-1"]],
+      tile14: [["tile14-0-1", "tile14-2-2"]],
       tile15: [["tile15-0-1", "tile15-2-1"]],
+      tile20: [["tile20-1-2", "tile20-2-1"]],
     } as const;
 
     for (const [tileId, pairs] of Object.entries(expected)) {
@@ -108,6 +109,13 @@ describe("metadata alignment", () => {
   it("does not expose artificial exits on tile1A", () => {
     const exitHeroTypes = MALL_TILES.tile1A.cells.filter((cell) => cell.type === CellType.Exit).map((cell) => cell.exitForHeroType);
     expect(exitHeroTypes).toEqual([]);
+  });
+
+  it("uses the visual purple exit on tile20", () => {
+    expect(MALL_TILES.tile20.cells.find((cell) => cell.localCellId === "tile20-3-3")).toMatchObject({
+      type: CellType.Exit,
+      exitForHeroType: "Mage",
+    });
   });
 
   it("encodes Scenario 1 and Scenario 2 exit/communication rules", () => {
