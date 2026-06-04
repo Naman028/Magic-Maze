@@ -31,6 +31,18 @@ describe("sand timer difficulty", () => {
     expect(room.session.communicationState.reason).toBe("SandTimer");
   });
 
+  it("does not auto-flip when movement lands on a non-timer cell", () => {
+    const { service, room } = createStartedRoom();
+    room.session.scenario.communicationAlwaysOpen = false;
+    givePlayerAction(room, 0, ActionType.MoveNorth);
+    placeHero(room, "hero-mage", "tile1A-start-mage");
+    room.session.sandTimer.remainingSeconds = 5;
+    service.moveHero({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", direction: Direction.North });
+    expect(room.session.sandTimer.usedSandTimerCellIds).toHaveLength(0);
+    expect(room.session.sandTimer.remainingSeconds).toBe(5);
+    expect(room.session.communicationState.reason).not.toBe("SandTimer");
+  });
+
   it("does not auto-flip used timer or timer during Escape", () => {
     const { service, room } = createStartedRoom();
     room.session.scenario.communicationAlwaysOpen = false;
