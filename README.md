@@ -107,9 +107,3 @@ frontend/public/assets/magic-maze/
 ```
 
 This includes action cards, hero pawns, hero cards, maze tiles, decks, and game tokens.
-
-## Notes
-
-- Do not commit `node_modules/`, build output, local `.env` files, or personal notes.
-- `PRODUCTION_READINESS.md` is local-only and should not be pushed unless the team explicitly decides to include it.
-- Backend game data in `backend/src/data/` is source code and must be committed because it defines heroes, starting positions, action cards, scenarios, and tile metadata.
