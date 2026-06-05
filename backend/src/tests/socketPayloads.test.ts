@@ -10,7 +10,8 @@ describe("socket payloads", () => {
 
     const payload = roomPayloadForPlayer(room, playerId);
 
-    expect(payload).toEqual({ roomCode: room.roomCode, playerId, session: room.session });
+    expect(payload).toEqual({ roomCode: room.roomCode, playerId, reconnectToken: room.session.players[0].reconnectToken, session: room.session });
+    expect(JSON.stringify(payload.session.players)).not.toContain("reconnectToken");
   });
 
   it("builds room:join payload for the joining socket", () => {
@@ -22,7 +23,9 @@ describe("socket payloads", () => {
     const payload = roomPayloadForPlayer(room, playerId);
 
     expect(payload.playerId).toBe(room.session.players[1].playerId);
+    expect(payload.reconnectToken).toBe(room.session.players[1].reconnectToken);
     expect(payload.session).toBe(room.session);
+    expect(JSON.stringify(payload.session.players)).not.toContain("reconnectToken");
   });
 });
 

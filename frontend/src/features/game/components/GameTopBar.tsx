@@ -3,7 +3,7 @@ import { GameSession } from "@/domain/game.types";
 import { emitters } from "@/services/socket/socketEmitters";
 import { getMagicMazeLogoImage } from "@/shared/utils/assetPaths";
 
-export function GameTopBar({ session }: { session: GameSession }) {
+export function GameTopBar({ session, onLeaveGame }: { session: GameSession; onLeaveGame: () => void }) {
   const [openPanel, setOpenPanel] = useState<"help" | "settings" | "menu" | undefined>();
 
   const togglePanel = (panel: "help" | "settings" | "menu") => {
@@ -13,9 +13,9 @@ export function GameTopBar({ session }: { session: GameSession }) {
   return (
     <header className="game-topbar">
       <img className="brand-logo brand-logo-game" src={getMagicMazeLogoImage()} alt="Magic Maze Online" />
-      <button className="ghost-button return-lobby-button" onClick={() => emitters.returnToLobby()} aria-label="Return to lobby">
+      <button className="ghost-button return-lobby-button" onClick={onLeaveGame} aria-label="Leave game">
         <BackIcon />
-        <span>Back to Lobby</span>
+        <span>Leave Game</span>
       </button>
       <div className="scenario-banner">
         <strong>{session.scenario.name.toUpperCase()}</strong>
@@ -50,7 +50,7 @@ export function GameTopBar({ session }: { session: GameSession }) {
 
       {openPanel === "menu" && (
         <div className="topbar-popover menu-popover">
-          <button onClick={() => emitters.returnToLobby()}>Return to Lobby</button>
+          <button onClick={onLeaveGame}>Leave Game</button>
           <button onClick={() => emitters.signal("Attention")}>Do Something</button>
           <button onClick={() => setOpenPanel(undefined)}>Close Menu</button>
         </div>

@@ -21,14 +21,14 @@ export function registerSocketListeners() {
     return true;
   };
   const stored = restoreStoredIdentity();
-  if (stored.roomCode && stored.playerId) {
-    socket.emit("sync:request", { roomCode: stored.roomCode, playerId: stored.playerId });
+  if (stored.roomCode && stored.playerId && stored.reconnectToken) {
+    socket.emit("sync:request", { roomCode: stored.roomCode, playerId: stored.playerId, reconnectToken: stored.reconnectToken });
   }
 
   socket.on("connect", () => {
     useConnectionStore.getState().setConnected(true);
-    const { roomCode, playerId } = useGameStore.getState();
-    if (roomCode && playerId) socket.emit("sync:request", { roomCode, playerId });
+    const { roomCode, playerId, reconnectToken } = useGameStore.getState();
+    if (roomCode && playerId && reconnectToken) socket.emit("sync:request", { roomCode, playerId, reconnectToken });
   });
   socket.on("disconnect", () => useConnectionStore.getState().setConnected(false));
 

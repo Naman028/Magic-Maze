@@ -80,6 +80,19 @@ describe("special actions", () => {
     expect(room.session.heroes[0].positionCellId).toBe("tile7:tile7-1-3");
   });
 
+  it("uses the visual tile2 escalator endpoint instead of the stale middle cell", () => {
+    const { service, room } = createStartedRoom();
+    givePlayerAction(room, 0, ActionType.TakeEscalator);
+    room.session.board.cells["tile2:tile2-0-1"] = { cellId: "tile2:tile2-0-1", tileId: "tile2", x: 20, y: 20, type: CellType.Normal, walls: [], neighborCellIds: {}, escalatorGroupId: "old-group-a" };
+    room.session.board.cells["tile2:tile2-1-2"] = { cellId: "tile2:tile2-1-2", tileId: "tile2", x: 21, y: 21, type: CellType.Escalator, walls: [], neighborCellIds: {}, escalatorGroupId: "old-group-a" };
+    room.session.board.cells["tile2:tile2-1-3"] = { cellId: "tile2:tile2-1-3", tileId: "tile2", x: 21, y: 22, type: CellType.Normal, walls: [], neighborCellIds: {} };
+    placeHero(room, "hero-mage", "tile2:tile2-0-1");
+
+    expect(() => service.takeEscalator({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", targetCellId: "tile2:tile2-1-2" })).toThrow("paired escalator");
+    service.takeEscalator({ roomCode: room.roomCode, playerId: room.session.players[0].playerId, heroId: "hero-mage", targetCellId: "tile2:tile2-1-3" });
+    expect(room.session.heroes[0].positionCellId).toBe("tile2:tile2-1-3");
+  });
+
   it("takes an escalator from a cell that also has another board function", () => {
     const { service, room } = createStartedRoom();
     room.session.board.cells["search-elevator"] = {

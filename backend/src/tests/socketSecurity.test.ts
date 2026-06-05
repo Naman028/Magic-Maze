@@ -35,8 +35,9 @@ describe("socket identity validation", () => {
   it("returns current state for a valid sync request", () => {
     const service = createRoomService();
     const room = service.createRoom({ nickname: "Host", socketId: "socket-host" });
+    const player = room.session.players[0];
 
-    const synced = service.syncState(room.roomCode, room.session.players[0].playerId, "socket-host");
+    const synced = service.syncState(room.roomCode, player.playerId, player.reconnectToken, "socket-host");
 
     expect(synced.session).toBe(room.session);
   });
@@ -44,10 +45,10 @@ describe("socket identity validation", () => {
   it("allows a disconnected player to reconnect with a new socket id", () => {
     const service = createRoomService();
     const room = service.createRoom({ nickname: "Host", socketId: "old-socket" });
-    const playerId = room.session.players[0].playerId;
+    const player = room.session.players[0];
     service.disconnectSocket("old-socket");
 
-    const synced = service.syncState(room.roomCode, playerId, "new-socket");
+    const synced = service.syncState(room.roomCode, player.playerId, player.reconnectToken, "new-socket");
 
     expect(synced.session.players[0].socketId).toBe("new-socket");
     expect(synced.session.players[0].isConnected).toBe(true);
@@ -56,12 +57,24 @@ describe("socket identity validation", () => {
   it("rejects reconnect hijacking while the player is connected elsewhere", () => {
     const service = createRoomService();
     const room = service.createRoom({ nickname: "Host", socketId: "owner-socket" });
+    const player = room.session.players[0];
 
-    expect(() => service.syncState(room.roomCode, room.session.players[0].playerId, "attacker-socket")).toThrow("Socket is not allowed");
+    expect(() => service.syncState(room.roomCode, player.playerId, player.reconnectToken, "attacker-socket")).toThrow("Socket is not allowed");
+  });
+
+  it("rejects sync requests with a wrong reconnect token", () => {
+    const service = createRoomService();
+    const room = service.createRoom({ nickname: "Host", socketId: "socket-host" });
+
+    expect(() => service.syncState(room.roomCode, room.session.players[0].playerId, "wrong-token", "socket-host")).toThrow("Reconnect token");
   });
 
   it("rejects sync requests without a player id", () => {
-    expect(() => syncRequestSchema.parse({ roomCode: "ABC123" })).toThrow();
+    expect(() => syncRequestSchema.parse({ roomCode: "ABC123", reconnectToken: "token" })).toThrow();
+  });
+
+  it("rejects sync requests without a reconnect token", () => {
+    expect(() => syncRequestSchema.parse({ roomCode: "ABC123", playerId: "player-1" })).toThrow();
   });
 });
 

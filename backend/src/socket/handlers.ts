@@ -220,7 +220,7 @@ export function registerSocketHandlers(io: Server, socket: Socket, roomService: 
   socket.on(ClientEvent.SyncRequest, (payload) => {
     try {
       const input = syncRequestSchema.parse(payload);
-      const room = roomService.syncState(input.roomCode, input.playerId, socket.id);
+      const room = roomService.syncState(input.roomCode, input.playerId, input.reconnectToken, socket.id);
       socket.join(room.roomCode);
       socket.emit(ServerEvent.SyncState, room.session);
       io.to(room.roomCode).emit(ServerEvent.StateUpdated, room.session);

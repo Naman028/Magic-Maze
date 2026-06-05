@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BACKEND_URL } from "@/services/socket/socketClient";
+import { BACKEND_URL, socket } from "@/services/socket/socketClient";
 import { useGameStore } from "@/app/stores/useGameStore";
 import { useLobbyStore } from "@/app/stores/useLobbyStore";
 import { DifficultySelector } from "@/features/lobby/components/DifficultySelector";
@@ -39,9 +39,16 @@ export function LobbyPage() {
     );
   }
 
+  const leaveLobby = () => {
+    useGameStore.getState().clearSession();
+    socket.disconnect();
+    socket.connect();
+    navigate("/");
+  };
+
   return (
     <div className="app-shell lv2-shell">
-      <LobbyHeader session={session} onHome={() => navigate("/")} />
+      <LobbyHeader session={session} onHome={leaveLobby} />
 
       <main className="lv2-grid">
         {/* ── Left column: Room Code + Rules Preview ── */}

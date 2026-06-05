@@ -57,7 +57,7 @@ describe("metadata alignment", () => {
   it("uses visual stair endpoints for elevator tiles", () => {
     const expected = {
       tile2: [
-        ["tile2-0-1", "tile2-1-2"],
+        ["tile2-0-1", "tile2-1-3"],
       ],
       tile7: [["tile7-2-1", "tile7-1-3"]],
       tile10: [["tile10-1-2", "tile10-2-1"]],

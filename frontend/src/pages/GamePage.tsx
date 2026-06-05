@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ActionPanel } from "@/features/game/components/ActionPanel";
 import { BoardArea } from "@/features/game/components/BoardArea";
@@ -14,9 +14,11 @@ import { TheftPanel } from "@/features/game/components/TheftPanel";
 import { TimerPanel } from "@/features/game/components/TimerPanel";
 import { useGameStore } from "@/app/stores/useGameStore";
 import { useUiStore } from "@/app/stores/useUiStore";
+import { socket } from "@/services/socket/socketClient";
 
 export function GamePage() {
   const navigate = useNavigate();
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const { session, playerId } = useGameStore();
   const lastError = useUiStore((state) => state.lastError);
   const me = session?.players.find((player) => player.playerId === playerId);
@@ -35,13 +37,20 @@ export function GamePage() {
     if (session?.status === "Waiting") navigate(`/lobby/${session.roomCode}`);
   }, [navigate, session]);
 
+  const leaveGame = () => {
+    useGameStore.getState().clearSession();
+    socket.disconnect();
+    socket.connect();
+    navigate("/");
+  };
+
   if (!session) {
     return <main className="center-page"><div className="panel">No game loaded. Create or join a room first.</div></main>;
   }
 
   return (
     <GameLayout>
-      <GameTopBar session={session} />
+      <GameTopBar session={session} onLeaveGame={() => setLeaveConfirmOpen(true)} />
       {lastError && <div className="toast-error">{lastError}</div>}
       <main className={`game-grid ${isSolo ? "solo-game-grid" : "multiplayer-game-grid"}`}>
         <PlayerSidePanel session={session} playerId={playerId} side="all" />
@@ -66,6 +75,42 @@ export function GamePage() {
         </aside>
       </main>
       <ResultOverlay session={session} isHost={Boolean(me?.isHost)} />
+      {leaveConfirmOpen && (
+        <div className="confirm-overlay" role="presentation" onMouseDown={() => setLeaveConfirmOpen(false)}>
+          <section
+            className="confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-game-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="confirm-dialog-icon">
+              <BackArrowIcon />
+            </div>
+            <div className="confirm-dialog-copy">
+              <h2 id="leave-game-title">Leave Game?</h2>
+              <p>Your seat will be marked offline, but the room will keep running for the other players. You can rejoin from this browser while the room is still active.</p>
+            </div>
+            <div className="confirm-dialog-actions">
+              <button className="ghost-button" type="button" onClick={() => setLeaveConfirmOpen(false)}>
+                Stay
+              </button>
+              <button className="gold-button danger-confirm-button" type="button" onClick={leaveGame}>
+                Leave Game
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </GameLayout>
+  );
+}
+
+function BackArrowIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m12 5-7 7 7 7" />
+    </svg>
   );
 }

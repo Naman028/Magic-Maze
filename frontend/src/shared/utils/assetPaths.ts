@@ -59,6 +59,14 @@ export function getDoSomethingImage() {
   return "/assets/magic-maze/Dosomething.png";
 }
 
+export function getHomeDoSomethingImage() {
+  return "/assets/magic-maze/DoSomething_HomeScreen.png";
+}
+
+export function getHomeSandclockImage() {
+  return "/assets/magic-maze/Sandclock.png";
+}
+
 export function getDoSomethingFallbackImage() {
   return "/assets/magic-maze/Dosomething.png";
 }
