@@ -13,7 +13,7 @@ import { GuardPawn } from "./GuardPawn";
 import { useResponsiveTileSize } from "../hooks/useResponsiveTileSize";
 import { placementFromExploration } from "../utils/explorationPlacement";
 
-const MIN_BOARD_ZOOM = 0.55;
+const MIN_BOARD_ZOOM = 0.35;
 const MAX_BOARD_ZOOM = 1.8;
 
 export function MazeBoard({ session }: { session: GameSession }) {
@@ -403,7 +403,7 @@ export function MazeBoard({ session }: { session: GameSession }) {
             <button type="button" onClick={() => changeZoom(0.12)} title="Zoom in">+</button>
             <input
               type="range"
-              min="55"
+              min="35"
               max="180"
               value={Math.round(zoom * 100)}
               onChange={(event) => applyZoom(Number(event.currentTarget.value) / 100)}

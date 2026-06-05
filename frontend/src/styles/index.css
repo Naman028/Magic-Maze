@@ -1319,10 +1319,10 @@ input:focus, select:focus { border-color: #c084fc; box-shadow: 0 0 0 3px rgba(19
   user-select: none;
   filter: drop-shadow(0 7px 7px rgba(0,0,0,.58));
 }
-.hero-token-mage img { transform: translateY(2.1%) scale(1.16); }
-.hero-token-dwarf img { transform: translateY(3.2%) scale(1.08); }
-.hero-token-elf img { transform: translateY(1.2%) scale(1.06); }
-.hero-token-barbarian img { transform: translateY(2.9%) scale(1.02); }
+.hero-token-mage img { transform: scale(1.16); }
+.hero-token-dwarf img { transform: scale(1.08); }
+.hero-token-elf img { transform: scale(1.06); }
+.hero-token-barbarian img { transform: scale(1.02); }
 .hero-token:active { cursor: grabbing; }
 .hero-token.selected { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 0 0 var(--selection-ring-size, 2px) rgba(255, 255, 255, .7); }
 .do-something-button { display: flex; align-items: center; gap: 8px; }
