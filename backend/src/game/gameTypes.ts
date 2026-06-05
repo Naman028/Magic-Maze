@@ -67,6 +67,7 @@ export interface ActionCard {
 export interface Player {
   playerId: string;
   socketId?: string;
+  reconnectToken: string;
   nickname: string;
   isHost: boolean;
   isReady: boolean;

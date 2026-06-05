@@ -274,7 +274,7 @@ function createReferenceTile(tileNumber: number): MallTileDefinition {
 
 const VISUAL_ESCALATOR_ENDPOINTS: Record<string, string[][]> = {
   tile1A: [["tile1A-3-2", "tile1A-2-3"]],
-  tile2: [["tile2-0-1", "tile2-1-2"]],
+  tile2: [["tile2-0-1", "tile2-1-3"]],
   tile7: [["tile7-2-1", "tile7-1-3"]],
   tile10: [["tile10-1-2", "tile10-2-1"]],
   tile12: [

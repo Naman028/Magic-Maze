@@ -3,22 +3,26 @@ import { GameSession, Room } from "../game/gameTypes.js";
 export interface RoomCreatedPayload {
   roomCode: string;
   playerId: string;
+  reconnectToken: string;
   session: GameSession;
 }
 
 export interface RoomJoinedPayload {
   roomCode: string;
   playerId: string;
+  reconnectToken: string;
   session: GameSession;
 }
 
 export function roomPayloadForPlayer(room: Room, playerId: string): RoomCreatedPayload {
-  if (!room.session.players.some((player) => player.playerId === playerId)) {
+  const player = room.session.players.find((candidate) => candidate.playerId === playerId);
+  if (!player) {
     throw new Error("Player does not belong to this room.");
   }
   return {
     roomCode: room.roomCode,
     playerId,
+    reconnectToken: player.reconnectToken,
     session: room.session,
   };
 }

@@ -47,6 +47,7 @@ export const discussionEndSchema = z.object({
 export const syncRequestSchema = z.object({
   roomCode: z.string().min(6).max(6),
   playerId: z.string().min(1),
+  reconnectToken: z.string().min(1),
 });
 
 export const explorePlaceTileSchema = z.object({

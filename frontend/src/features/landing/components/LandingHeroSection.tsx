@@ -1,5 +1,5 @@
 import { getHeroCharacterFallbackImage, getHeroCharacterImage } from "../../game/utils/heroVisuals";
-import { getDoSomethingImage } from "@/shared/utils/assetPaths";
+import { getHomeDoSomethingImage, getHomeSandclockImage } from "@/shared/utils/assetPaths";
 import { FeatureCard } from "./FeatureCard";
 
 const heroes = ["Mage", "Elf", "Barbarian", "Dwarf"];
@@ -13,7 +13,9 @@ export function LandingHeroSection() {
         <h2>Create a room, share the code, and escape together.</h2>
       </div>
       <div className="hero-showcase character-showcase" aria-hidden>
-        <div className="hourglass-figure">⌛</div>
+        <div className="landing-showcase-slot landing-hourglass">
+          <img src={getHomeSandclockImage()} alt="" />
+        </div>
         {heroes.map((hero) => (
           <img
             key={hero}
@@ -25,8 +27,8 @@ export function LandingHeroSection() {
             }}
           />
         ))}
-        <div className="do-something">
-          <img src={getDoSomethingImage()} alt="" />
+        <div className="landing-showcase-slot do-something">
+          <img src={getHomeDoSomethingImage()} alt="" />
           <small>DO SOMETHING!</small>
         </div>
       </div>

@@ -183,6 +183,7 @@ export interface GameSession {
 export interface RoomPayload {
   roomCode: string;
   playerId: string;
+  reconnectToken: string;
   session: GameSession;
 }
 

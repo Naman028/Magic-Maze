@@ -39,7 +39,7 @@ export const emitters = {
     emitWithIdentity(ClientEvent.SignalSend, { signalType, ...(heroId ? { heroId } : {}), ...(targetPlayerId ? { targetPlayerId } : {}) }),
   playAgain: () => emitWithIdentity(ClientEvent.GamePlayAgain, { keepScenario: true, keepDifficulty: true }),
   returnToLobby: () => emitWithIdentity(ClientEvent.GameReturnToLobby),
-  sync: (roomCode: string, playerId: string) => socket.emit(ClientEvent.SyncRequest, { roomCode, playerId }),
+  sync: (roomCode: string, playerId: string, reconnectToken: string) => socket.emit(ClientEvent.SyncRequest, { roomCode, playerId, reconnectToken }),
   disableCamera: (heroId: string, cameraCellId: string) => emitWithIdentity(ClientEvent.DisableCamera, { heroId, cameraCellId }),
   mageCrystalExplore: (heroId: string, placements: Array<{ explorationCellId: string; boardX: number; boardY: number; rotation: 0 | 90 | 180 | 270 }>) =>
     emitWithIdentity(ClientEvent.MageCrystalExplore, { heroId, placements }),

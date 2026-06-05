@@ -18,6 +18,7 @@ export interface LogEntry {
 interface GameState {
   roomCode?: string;
   playerId?: string;
+  reconnectToken?: string;
   nickname?: string;
   session?: GameSession;
   selectedHeroId?: string;
@@ -27,7 +28,7 @@ interface GameState {
   legalMoveTargets: LegalMoveTarget[];
   pendingTilePlacement?: PendingTilePlacement;
   log: LogEntry[];
-  setIdentity: (payload: { roomCode: string; playerId: string; nickname?: string }) => void;
+  setIdentity: (payload: { roomCode: string; playerId: string; reconnectToken?: string; nickname?: string }) => void;
   setSession: (session: GameSession) => void;
   clearSession: (options?: { clearNickname?: boolean }) => void;
   hydrateRoomPayload: (payload: RoomPayload, nickname?: string) => void;
@@ -52,11 +53,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   log: [{ timestamp: now(), type: "system", message: "Welcome to Magic Maze Online." }],
   vortexMode: false,
   legalMoveTargets: [],
-  setIdentity: ({ roomCode, playerId, nickname }) => {
+  setIdentity: ({ roomCode, playerId, reconnectToken, nickname }) => {
     localStorage.setItem("magicMaze.roomCode", roomCode);
     localStorage.setItem("magicMaze.playerId", playerId);
+    if (reconnectToken) localStorage.setItem("magicMaze.reconnectToken", reconnectToken);
     if (nickname) localStorage.setItem("magicMaze.nickname", nickname);
-    set({ roomCode, playerId, nickname });
+    set({ roomCode, playerId, reconnectToken, nickname });
   },
   setSession: (session) =>
     set((state) => {
@@ -68,11 +70,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   clearSession: (options) => {
     localStorage.removeItem("magicMaze.roomCode");
     localStorage.removeItem("magicMaze.playerId");
+    localStorage.removeItem("magicMaze.reconnectToken");
     if (options?.clearNickname) localStorage.removeItem("magicMaze.nickname");
-    set({ roomCode: undefined, playerId: undefined, session: undefined, selectedHeroId: undefined, pendingMoveDirection: undefined, pendingTilePlacement: undefined, vortexMode: false, draggingHeroId: undefined, legalMoveTargets: [] });
+    set({ roomCode: undefined, playerId: undefined, reconnectToken: undefined, session: undefined, selectedHeroId: undefined, pendingMoveDirection: undefined, pendingTilePlacement: undefined, vortexMode: false, draggingHeroId: undefined, legalMoveTargets: [] });
   },
   hydrateRoomPayload: (payload, nickname) => {
-    get().setIdentity({ roomCode: payload.roomCode, playerId: payload.playerId, nickname });
+    get().setIdentity({ roomCode: payload.roomCode, playerId: payload.playerId, reconnectToken: payload.reconnectToken, nickname });
     set({ session: payload.session });
   },
   setSelectedHeroId: (selectedHeroId) => set({ selectedHeroId, legalMoveTargets: [] }),
@@ -105,9 +108,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 export function restoreStoredIdentity() {
   const roomCode = localStorage.getItem("magicMaze.roomCode") ?? undefined;
   const playerId = localStorage.getItem("magicMaze.playerId") ?? undefined;
+  const reconnectToken = localStorage.getItem("magicMaze.reconnectToken") ?? undefined;
   const nickname = localStorage.getItem("magicMaze.nickname") ?? undefined;
-  if (roomCode && playerId) {
-    useGameStore.getState().setIdentity({ roomCode, playerId, nickname });
+  if (roomCode && playerId && reconnectToken) {
+    useGameStore.getState().setIdentity({ roomCode, playerId, reconnectToken, nickname });
   }
-  return { roomCode, playerId, nickname };
+  return { roomCode, playerId, reconnectToken, nickname };
 }

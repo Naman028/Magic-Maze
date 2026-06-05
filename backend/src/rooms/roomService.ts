@@ -170,21 +170,32 @@ export interface LegalMovesResult {
 export class RoomService {
   constructor(private readonly store: RoomStore) {}
 
+  private playerWithHiddenReconnectToken(player: Player): Player {
+    Object.defineProperty(player, "reconnectToken", {
+      value: player.reconnectToken,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+    return player;
+  }
+
   createRoom(input: CreateRoomInput): Room {
     assertNickname(input.nickname);
     let roomCode = generateRoomCode();
     while (this.store.has(roomCode)) {
       roomCode = generateRoomCode();
     }
-    const host: Player = {
+    const host: Player = this.playerWithHiddenReconnectToken({
       playerId: createId("player"),
       socketId: input.socketId,
+      reconnectToken: createId("reconnect"),
       nickname: input.nickname.trim(),
       isHost: true,
       isReady: false,
       isConnected: true,
       isSpectator: false,
-    };
+    });
     const room: Room = { roomCode, session: createGameSession(roomCode, host) };
     this.store.set(room);
     return room;
@@ -194,15 +205,16 @@ export class RoomService {
     assertNickname(input.nickname);
     const room = this.store.get(input.roomCode);
     assertRoomCanBeJoined(room);
-    const player: Player = {
+    const player: Player = this.playerWithHiddenReconnectToken({
       playerId: createId("player"),
       socketId: input.socketId,
+      reconnectToken: createId("reconnect"),
       nickname: input.nickname.trim(),
       isHost: false,
       isReady: false,
       isConnected: true,
       isSpectator: false,
-    };
+    });
     room.session.players.push(player);
     room.session.updatedAt = Date.now();
     return room;
@@ -506,7 +518,9 @@ export class RoomService {
     if (![GameStatus.Victory, GameStatus.Defeat].includes(room.session.status)) throw new Error("Game must be over before playing again.");
     const scenario = input.keepScenario ? room.session.scenario : getScenario("scenario1_discovery");
     const difficulty = input.keepDifficulty ? room.session.difficultySettings : difficultySettingsFor("Normal");
-    const players = room.session.players.map((player) => ({ ...player, isReady: false, assignedActionCard: undefined }));
+    const players = room.session.players.map((player) =>
+      this.playerWithHiddenReconnectToken({ ...player, reconnectToken: player.reconnectToken, isReady: false, assignedActionCard: undefined }),
+    );
     room.session = createGameSession(room.roomCode, players.find((player) => player.isHost) ?? players[0]);
     room.session.players = players;
     room.session.scenario = scenario;
@@ -594,11 +608,14 @@ export class RoomService {
     return changedRooms;
   }
 
-  syncState(roomCode: string, playerId: string, socketId: string): Room {
+  syncState(roomCode: string, playerId: string, reconnectToken: string, socketId: string): Room {
     const room = this.getRoom(roomCode);
     const player = room.session.players.find((candidate) => candidate.playerId === playerId);
     if (!player) {
       throw new Error("Player does not belong to this room.");
+    }
+    if (player.reconnectToken !== reconnectToken) {
+      throw new Error("Reconnect token is invalid.");
     }
     if (player.socketId === socketId) {
       if (!player.isConnected) {

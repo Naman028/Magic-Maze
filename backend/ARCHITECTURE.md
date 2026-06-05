@@ -6,7 +6,7 @@ This backend is a server-authoritative MVP for Magic Maze Online. Clients reques
 
 Implemented backend areas:
 
-- Room creation, joining, reconnect/sync, host checks, and Socket.IO ownership validation
+- Room creation, joining, token-based reconnect/sync, host checks, and Socket.IO ownership validation
 - Scenario selection for scenarios 1-7 and difficulty selection
 - Shared heroes controlled by player action cards
 - One-cell movement and multi-cell directional movement
@@ -24,6 +24,7 @@ Honest limitations:
 - Advanced scenarios beyond the represented rule flags are MVP implementations, not complete board-game simulations.
 - Tile rotation is blocked until rotated coordinates, walls, arrows, entries, and neighbor links are implemented.
 - Sessions are in memory only. There is no database persistence yet.
+- Reconnect is MVP-scoped: it restores a same-browser player while the backend process still holds the room.
 - Frontend voice/audio/rendering is outside this backend. The backend only emits state and effect hooks.
 
 ## Main Runtime Model
@@ -39,6 +40,8 @@ Honest limitations:
 - objectives, achievements, result, and challenge state
 
 The frontend should treat server broadcasts as the source of truth.
+
+Reconnect tokens are stored on backend `Player` objects as non-enumerable fields. They are sent only in the private `room:created` / `room:joined` payload for that player, not in room-wide `GameSession` broadcasts.
 
 ## Request Flow
 

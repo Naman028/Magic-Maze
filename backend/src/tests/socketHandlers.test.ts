@@ -50,13 +50,13 @@ describe("socket handlers", () => {
     const store = new RoomStore();
     const service = new RoomService(store);
     const room = service.createRoom({ nickname: "Host", socketId: "socket-old" });
-    const playerId = room.session.players[0].playerId;
+    const player = room.session.players[0];
     service.disconnectSocket("socket-old");
     const socket = new FakeSocket();
     const io = new FakeIo();
 
     registerSocketHandlers(io as never, socket as never, service, {} as never);
-    socket.handlers.get(ClientEvent.SyncRequest)?.({ roomCode: room.roomCode, playerId });
+    socket.handlers.get(ClientEvent.SyncRequest)?.({ roomCode: room.roomCode, playerId: player.playerId, reconnectToken: player.reconnectToken });
 
     expect(socket.joinedRooms).toContain(room.roomCode);
     expect(socket.emitted.some((message) => message.event === ServerEvent.SyncState)).toBe(true);

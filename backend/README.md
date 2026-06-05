@@ -3,7 +3,7 @@
 Server-authoritative backend MVP for Magic Maze Online.
 
 Implemented:
-- Rooms, host validation, Socket.IO sync, reconnect, and `GET /scenarios`
+- Rooms, host validation, Socket.IO sync, token-based same-browser reconnect, and `GET /scenarios`
 - Scenario selection for scenarios 1-7 and difficulty selection
 - Shared heroes with action-card validation
 - One-cell and multi-cell movement with walls, occupancy, guards, Vortex, and Escalator
@@ -18,7 +18,7 @@ Honest limitations:
 - Exact visual/cell metadata for the uploaded physical maze tiles is still placeholder unless marked verified.
 - Advanced scenarios beyond the MVP flags are not full board-game simulations.
 - Frontend rendering, audio playback, and animation are outside the backend.
-- Sessions are in memory only; no database persistence is implemented.
+- Sessions and reconnect tokens are in memory only; no database persistence is implemented.
 
 Run:
 
@@ -32,3 +32,5 @@ Production notes:
 - Copy `.env.example` to `.env` for local configuration.
 - Set `NODE_ENV=production` and a concrete `CORS_ORIGIN` before deploying.
 - Rooms are still in memory. Use persistent storage before relying on this for long-running public games.
+
+Additional backend notes live in `ARCHITECTURE.md`.
